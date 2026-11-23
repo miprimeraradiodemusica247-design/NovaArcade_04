@@ -163,7 +163,7 @@ window.__novaSupabaseReady = new Promise(function(resolve, reject) {
     </div>
   </section>
 </main>
-<nav class="seo-category-nav" aria-label="Explorar juegos por categoría"><h2>Explora juegos online gratis por categoría</h2><p>Encuentra tu próxima partida: juegos de acción, aventuras, arcade, carreras, coches, deportes y mucho más.</p><div class="seo-category-links"><a href="/categoria/accion">Juegos de acción</a><a href="/categoria/aventura">Juegos de aventura</a><a href="/categoria/arcade">Juegos arcade</a><a href="/categoria/carreras">Juegos de carreras</a><a href="/categoria/coches">Juegos de coches</a><a href="/categoria/deportes">Juegos de deportes</a><a href="/categoria/disparos">Juegos de disparos</a><a href="/categoria/estrategia">Juegos de estrategia</a><a href="/categoria/habilidad">Juegos de habilidad</a><a href="/categoria/multijugador">Juegos multijugador</a><a href="/categoria/simulacion">Juegos de simulación</a><a href="/categoria/clicker">Juegos clicker</a><a href="/categoria/palabras">Juegos de palabras</a><a href="/categoria/cartas">Juegos de cartas</a><a href="/categoria/mesa">Juegos de mesa</a><a href="/categoria/io">Juegos .io</a></div></nav>
+<button type="button" class="category-menu-toggle" id="categoryMenuToggle" aria-controls="categoryMenu" aria-expanded="false"><span aria-hidden="true">☰</span> Explorar categorías</button><div class="category-menu-backdrop" id="categoryMenuBackdrop" hidden></div><aside class="seo-category-nav category-drawer" id="categoryMenu" aria-label="Explorar juegos por categoría" aria-hidden="true" hidden><div class="category-drawer-heading"><div><h2>Explora juegos online gratis por categoría</h2><p>Encuentra tu próxima partida: juegos de acción, aventuras, arcade, carreras, coches, deportes y mucho más.</p></div><button type="button" class="category-menu-close" id="categoryMenuClose" aria-label="Cerrar menú de categorías">×</button></div><div class="seo-category-links"><a href="/categoria/accion">Juegos de acción</a><a href="/categoria/aventura">Juegos de aventura</a><a href="/categoria/arcade">Juegos arcade</a><a href="/categoria/carreras">Juegos de carreras</a><a href="/categoria/coches">Juegos de coches</a><a href="/categoria/deportes">Juegos de deportes</a><a href="/categoria/disparos">Juegos de disparos</a><a href="/categoria/estrategia">Juegos de estrategia</a><a href="/categoria/habilidad">Juegos de habilidad</a><a href="/categoria/multijugador">Juegos multijugador</a><a href="/categoria/simulacion">Juegos de simulación</a><a href="/categoria/clicker">Juegos clicker</a><a href="/categoria/palabras">Juegos de palabras</a><a href="/categoria/cartas">Juegos de cartas</a><a href="/categoria/mesa">Juegos de mesa</a><a href="/categoria/io">Juegos .io</a></div></aside>
 <section class="seo-home-guide" aria-label="Guía para jugar en NOVA ARCADE">
   <article>
     <h2>Juegos online para cada estilo</h2>
@@ -981,6 +981,22 @@ function bind(isA){
     return;
   }
   if(!isA){
+    var categoryToggle=$("#categoryMenuToggle"),categoryDrawer=$("#categoryMenu"),categoryBackdrop=$("#categoryMenuBackdrop");
+    function setCategoryMenu(open){
+      if(!categoryToggle||!categoryDrawer||!categoryBackdrop)return;
+      categoryToggle.setAttribute("aria-expanded",open?"true":"false");
+      categoryDrawer.setAttribute("aria-hidden",open?"false":"true");
+      categoryDrawer.hidden=!open;
+      categoryBackdrop.hidden=!open;
+      document.body.classList.toggle("category-menu-open",open);
+      if(open){var closeButton=$("#categoryMenuClose");if(closeButton)closeButton.focus();}
+      else categoryToggle.focus();
+    }
+    if(categoryToggle)categoryToggle.onclick=function(){setCategoryMenu(categoryToggle.getAttribute("aria-expanded")!=="true");};
+    if($("#categoryMenuClose"))$("#categoryMenuClose").onclick=function(){setCategoryMenu(false);};
+    if(categoryBackdrop)categoryBackdrop.onclick=function(){setCategoryMenu(false);};
+    if(categoryDrawer)categoryDrawer.querySelectorAll("a").forEach(function(link){link.addEventListener("click",function(){setCategoryMenu(false);});});
+    document.onkeydown=function(event){if(event.key==="Escape"&&categoryToggle&&categoryToggle.getAttribute("aria-expanded")==="true")setCategoryMenu(false);};
     document.querySelectorAll("[data-category]").forEach(function(button){button.onclick=function(){fc=button.dataset.category||"";publicPage=1;render();};});
     $("#s").oninput=function(e){
       q=e.target.value;
