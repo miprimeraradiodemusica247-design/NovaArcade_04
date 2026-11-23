@@ -77,7 +77,8 @@ main{max-width:1440px;padding:24px clamp(14px,3vw,42px)}header{padding:14px clam
 
 
 /* Tipografía compacta y adaptable a cualquier pantalla */
-body{font-size:clamp(13px,.9vw + 10px,15px);line-height:1.45;overflow-x:hidden}header{gap:8px;flex-wrap:wrap}
+body{font-size:clamp(13px,.9vw + 10px,15px);line-height:1.45;overflow-x:hidden}
+header{gap:8px;flex-wrap:wrap}
 .logo{font-size:clamp(15px,1.5vw,19px);letter-spacing:.09em}
 main{width:100%;min-width:0}
 .hero{padding:clamp(24px,4vw,42px) 0 18px}
@@ -128,50 +129,6 @@ input,select,textarea{font-size:13px;min-width:0}
   .hero h1{font-size:25px}
 }
 
-
-/* Interfaz minimalista: tonos cálidos suaves y navegación lateral por categorías. */
-:root{--bg:#faf9f6;--card:#fff;--tx:#292821;--mut:#77746a;--ac:#9c895f;--ac2:#c8b990;--bd:#e9e5dc}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#191916;--card:#23231f;--tx:#eeede7;--mut:#aaa79b;--ac:#c4ad7a;--ac2:#dfd0ad;--bd:#3a3932}}
-:root[data-theme="dark"]{--bg:#191916;--card:#23231f;--tx:#eeede7;--mut:#aaa79b;--ac:#c4ad7a;--ac2:#dfd0ad;--bd:#3a3932}
-.btn{box-shadow:none;border-color:transparent;transition:background-color .16s ease,border-color .16s ease,color .16s ease}
-.btn:hover:not(:disabled){transform:none;box-shadow:none}
-.btn:not(.sec):not(.bad){background:color-mix(in srgb,var(--ac) 14%,var(--card));color:var(--tx);border-color:color-mix(in srgb,var(--ac) 25%,var(--bd))}
-.btn:not(.sec):not(.bad):hover{background:color-mix(in srgb,var(--ac) 22%,var(--card))}
-.card{box-shadow:0 1px 2px color-mix(in srgb,var(--tx) 3%,transparent);transition:border-color .16s ease,box-shadow .16s ease}
-.card:hover{transform:none;border-color:color-mix(in srgb,var(--ac) 55%,var(--bd));box-shadow:0 5px 18px color-mix(in srgb,var(--tx) 6%,transparent)}
-.main-search{border-color:var(--bd);box-shadow:0 2px 12px color-mix(in srgb,var(--tx) 3%,transparent)}
-.catalog-layout{display:grid;grid-template-columns:218px minmax(0,1fr);gap:26px;align-items:start;margin:28px 0}
-.category-sidebar{position:sticky;top:94px;align-self:start;max-height:calc(100vh - 116px);overflow-y:auto;padding:16px 12px;background:var(--card);border:1px solid var(--bd);border-radius:14px}
-.category-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px 12px;border-bottom:1px solid var(--bd);margin-bottom:8px}
-.category-heading span{font-size:11px;font-weight:750;letter-spacing:.12em;color:var(--mut)}
-.category-heading small{font-size:10px;color:var(--mut)}
-.category-list{display:grid;gap:3px}
-.category-link{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:8px 9px;border:0;border-radius:8px;background:transparent;color:var(--mut);text-align:left;font:inherit;font-size:13px;cursor:pointer;transition:background-color .15s ease,color .15s ease}
-.category-link:hover{background:color-mix(in srgb,var(--ac) 7%,var(--card));color:var(--tx)}
-.category-link.active{background:color-mix(in srgb,var(--ac) 12%,var(--card));color:var(--tx);font-weight:650}
-.category-count{font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
-.catalog-content{min-width:0;margin:0}
-.catalog-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px}
-.catalog-heading h2{margin:0;font-size:20px;letter-spacing:-.02em}
-.catalog-heading p{margin:3px 0 0;color:var(--mut);font-size:12px}
-.catalog-content .grid{margin-top:0}
-@media(max-width:800px){
- .catalog-layout{grid-template-columns:minmax(0,1fr);gap:14px;margin-top:18px} .category-sidebar{position:static;max-height:none;overflow:visible;padding:12px}
- .category-heading{padding-bottom:9px}
- .category-list{display:flex;gap:6px;overflow-x:auto;padding:2px 1px 5px;scrollbar-width:thin}
- .category-link{width:auto;flex:0 0 auto;white-space:nowrap;padding:7px 10px;border:1px solid var(--bd);border-radius:999px}
- .category-count{padding-left:2px}
- .catalog-heading h2{font-size:18px}
-}
-@media(prefers-reduced-motion:reduce){.category-link,.btn,.card{transition:none}}
-
-
-/* Identidad visual NOVA ARCADE */
-.logo{display:inline-flex;align-items:center;flex:0 1 auto;max-width:min(62vw,260px);background:none;color:inherit;text-decoration:none;letter-spacing:normal;font-size:inherit}
-.logo img{display:block;width:100%;height:auto;max-height:46px;object-fit:contain;object-position:left center}
-.logo:focus-visible{outline:2px solid var(--ac);outline-offset:4px;border-radius:5px}
-@media(max-width:520px){header{padding:11px 13px;gap:8px}.logo{max-width:min(48vw,190px)}.logo img{max-height:38px}}
-
 </style>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://static.playgama.com" crossorigin>
@@ -188,10 +145,9 @@ window.__novaSupabaseReady = new Promise(function(resolve, reject) {
 </script>
 <link rel="preload" href="/arcade-motion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="/arcade-motion.css"></noscript>
-<link rel="stylesheet" href="/nova-upgrade.css">
 </head>
 <body>
-<header><a class="logo" href="/" aria-label="NOVA ARCADE, inicio"><img src="/nova-arcade-logo.svg" alt="NOVA ARCADE" width="220" height="46" fetchpriority="high"></a><div id="nav"></div></header>
+<header><span class="logo">🎮 NOVA ARCADE</span><div id="nav"></div></header>
 <main id="app" aria-busy="true">
   <section class="hero">
     <span class="eyebrow">TU UNIVERSO DE JUEGOS</span>
@@ -233,10 +189,11 @@ function ld(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catc
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 var games=ld("na_games",[]),catalogLoaded=false;
 var DEF={w1:{url:"",on:false,ev:{add:true,edit:true,publish:true,hide:true,del:true,login:false,fail:false}},w2:{url:"",on:false,ev:{add:false,edit:false,publish:false,hide:false,del:false,login:true,fail:true}},relay:"/api/notify"};
-var cfg=Object.assign({},DEF,ld("na_cfg",{}));cfg.relay="/api/notify";
+var cfg=Object.assign({},DEF,ld("na_cfg",{}));
 var adminSession=null;
 var adminUser=null;
-var adminChecked=false;var authBusy=false;
+var adminChecked=false;
+var authBusy=false;
 var supabaseClient=window.supabase.createClient(
   "https://ixxqbjoicjmvarnorjts.supabase.co",
   "sb_publishable_bKVxSSXG_tZzVxCs14xn1g_cqT0vsh-",
@@ -292,7 +249,7 @@ async function send(k,ev,g){
     return false;
   }
   try{
-    var response=await fetch("/api/notify",{
+    var response=await fetch(cfg.relay,{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
@@ -315,7 +272,8 @@ async function send(k,ev,g){
         405:"Método HTTP incorrecto",
         429:"Demasiadas solicitudes",
         500:"Configuración del servidor incompleta",
-        502:"Discord rechazó el webhook o no respondió"      };
+        502:"Discord rechazó el webhook o no respondió"
+      };
       throw new Error(result.error||messages[response.status]||("Error HTTP "+response.status));
     }
     entry.sent="Enviado correctamente ✓";
@@ -373,28 +331,25 @@ function pubView(){
  var recent=recentGames.map(function(id){return vis.find(function(g){return String(g.id)===String(id);});}).filter(Boolean);
  var favs=vis.filter(function(g){return isFavorite(g.id);});
  var normalizedQuery=normalizeSearch(q);
- var list=vis.filter(function(g){return(!fc||g.cat===fc)&&(!onlyFavorites||isFavorite(g.id))&&(!normalizedQuery||g._search.indexOf(normalizedQuery)>-1);});
+ var list=vis.filter(function(g){return(!fc||g.cat===fc)&&(!onlyFavorites||isFavorite(g.id))&&(!normalizedQuery||normalizeSearch(g.name+" "+g.desc+" "+g.cat).indexOf(normalizedQuery)>-1);});
  if(sortMode==="az")list.sort(function(a,b){return a.name.localeCompare(b.name,"es");});
  if(sortMode==="za")list.sort(function(a,b){return b.name.localeCompare(a.name,"es");});
  if(sortMode==="featured")list.sort(function(a,b){return Number(!!b.feat)-Number(!!a.feat);});
  var totalPages=Math.max(1,Math.ceil(list.length/PUBLIC_PAGE_SIZE));
  if(publicPage>totalPages)publicPage=totalPages;
  var pageItems=list.slice((publicPage-1)*PUBLIC_PAGE_SIZE,publicPage*PUBLIC_PAGE_SIZE);
- var categoryCounts=vis.reduce(function(counts,game){counts[game.cat]=(counts[game.cat]||0)+1;return counts;},{});
- var categoryItems=['<button type="button" class="category-link'+(!fc?' active':'')+'" data-public-category="" aria-pressed="'+(!fc)+'"><span>Todas las categorías</span><span class="category-count">'+vis.length+'</span></button>'].concat(CATS.map(function(category){
-   var count=categoryCounts[category]||0;
-   return '<button type="button" class="category-link'+(fc===category?' active':'')+'" data-public-category="'+esc(category)+'" aria-pressed="'+(fc===category)+'"><span>'+esc(category)+'</span><span class="category-count">'+count+'</span></button>';
- })).join("");
  var pager=list.length>PUBLIC_PAGE_SIZE?'<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:22px 0"><button class="btn sec sm" id="publicPrev"'+(publicPage<=1?' disabled':'')+'>← Anterior</button><span>Página '+publicPage+' de '+totalPages+' · '+list.length+' juegos</span><button class="btn sec sm" id="publicNext"'+(publicPage>=totalPages?' disabled':'')+'>Siguiente →</button></div>':"";
+ var opts=CATS.map(function(c){return '<option value="'+esc(c)+'"'+(c===fc?' selected':'')+'>'+esc(c)+'</option>';}).join("");
  return '<section class="hero"><span class="eyebrow">TU UNIVERSO DE JUEGOS</span><h1>Juegos online gratis para jugar al instante.</h1><p>Descubre juegos online gratis: juegos de acción, disparos, coches, carreras, aventuras, deportes y mucho más. Explora el catálogo, encuentra juegos para navegador y empieza a jugar.</p><div class="hero-stats"><span>🎮 '+vis.length+' juegos</span><span>⚡ Sin descargas</span><span>♥ Favoritos</span></div></section>'+
- '<div class="bar main-search"><input id="s" type="search" aria-label="Buscar juegos" placeholder="Buscar juegos…" value="'+esc(q)+'"><select id="sort" aria-label="Ordenar juegos"><option value="popular"'+(sortMode==="popular"?" selected":"")+'>Recomendados</option><option value="az"'+(sortMode==="az"?" selected":"")+'>Nombre A-Z</option><option value="za"'+(sortMode==="za"?" selected":"")+'>Nombre Z-A</option><option value="featured"'+(sortMode==="featured"?" selected":"")+' >Destacados primero</option></select><button class="btn sec" id="favFilter">'+(onlyFavorites?"♥ Todos":"♡ Favoritos")+'</button><button class="btn sec" id="randomGame">🎲 Juego aleatorio</button><button class="btn sec" id="clearFilters">Limpiar filtros</button></div>'+
+ '<div class="bar main-search"><input id="s" type="search" aria-label="Buscar juegos" placeholder="Buscar juegos…" value="'+esc(q)+'"><select id="c" aria-label="Filtrar juegos por categoría"><option value="">Todas las categorías</option>'+opts+'</select><select id="sort" aria-label="Ordenar juegos"><option value="popular"'+(sortMode==="popular"?" selected":"")+'>Recomendados</option><option value="az"'+(sortMode==="az"?" selected":"")+'>Nombre A-Z</option><option value="za"'+(sortMode==="za"?" selected":"")+'>Nombre Z-A</option><option value="featured"'+(sortMode==="featured"?" selected":"")+' >Destacados primero</option></select><button class="btn sec" id="favFilter">'+(onlyFavorites?"♥ Todos":"♡ Favoritos")+'</button><button class="btn sec" id="randomGame">🎲 Juego aleatorio</button><button class="btn sec" id="clearFilters">Limpiar filtros</button></div>'+
  (!q&&!fc&&!onlyFavorites?section("⭐ Destacados",feat)+section("🕹️ Seguir jugando",recent)+section("♥ Tus favoritos",favs):"")+
- '<div class="catalog-layout"><aside class="category-sidebar" aria-label="Categorías de juegos"><div class="category-heading"><span>CATEGORÍAS</span><small>'+CATS.length+' categorías</small></div><nav class="category-list" aria-label="Filtrar por categoría">'+categoryItems+'</nav></aside><section class="game-section catalog-content"><div class="catalog-heading"><div><h2>'+(onlyFavorites?"Tus favoritos":fc?esc(fc):"Explorar juegos")+'</h2><p>'+list.length+' juegos disponibles</p></div>'+(fc?'<button type="button" class="btn sec sm" id="clearCategory">Quitar categoría</button>':'')+'</div>'+(pageItems.length?'<div class="grid">'+pageItems.map(card).join("")+'</div>':'<div class="empty">No encontramos juegos. Prueba otra categoría o limpia los filtros.</div>')+pager+'</section></div>';
+ '<section class="game-section"><h2>'+(onlyFavorites?"Tus favoritos":"Explorar juegos")+'</h2>'+(pageItems.length?'<div class="grid">'+pageItems.map(card).join("")+'</div>':'<div class="empty">No encontramos juegos.</div>')+pager+'</section>';
 }
 function gamePlayerView(){
  var id=decodeURIComponent(location.hash.slice(6));
  var g=games.find(function(x){return String(x.id)===id&&x.pub;});
- if(!g)return '<div class="empty">Juego no disponible. <a href="#">Volver</a></div>'; rememberGame(g.id);
+ if(!g)return '<div class="empty">Juego no disponible. <a href="#">Volver</a></div>';
+ rememberGame(g.id);
  var related=games.filter(function(x){return x.pub&&x.id!==g.id&&x.cat===g.cat;}).slice(0,4);
  return '<div class="player-top"><a class="btn sec" href="#">← Volver</a><span class="tag">'+esc(g.cat)+'</span></div><div class="player-title"><div><h1>'+esc(g.name)+'</h1><p>'+esc(shortDescription(g.desc,150))+'</p></div><button type="button" class="btn sec" data-fav="'+esc(g.id)+'" aria-label="'+(isFavorite(g.id)?"Quitar "+esc(g.name)+" de favoritos":"Añadir "+esc(g.name)+" a favoritos")+'" aria-pressed="'+(isFavorite(g.id)?"true":"false")+'">'+(isFavorite(g.id)?"♥ Guardado":"♡ Favorito")+'</button></div><div class="game-frame-wrap"><iframe id="gameFrame" src="'+esc(safeUrl(g.url))+'" title="'+esc(g.name)+'" allow="autoplay; fullscreen; gamepad" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="player-controls"><button class="btn" id="fullScreen">⛶ Pantalla completa</button><button class="btn sec" id="reloadGame">↻ Recargar</button><a class="btn sec" target="_blank" rel="noopener noreferrer" href="'+esc(safeUrl(g.url))+'">Abrir en otra pestaña ↗</a></div><p class="player-note">Algunos sitios bloquean la reproducción integrada. En ese caso, abre el juego en otra pestaña.</p>'+section("Más juegos de "+esc(g.cat),related);
 }
@@ -417,7 +372,7 @@ function loginView(){
 function authLoadingView(){
   return '<div class="panel" style="margin:30px auto"><p>Verificando sesión y permisos…</p></div>';
 }
-function gameFromRow(r){var name=r.name||"",description=r.description||"",category=r.category||CATS[0];return {id:r.id,name:name,desc:description,cat:category,emoji:"🎮",url:r.game_url||"",pub:!!r.is_published,feat:!!r.is_featured,cover_path:r.cover_path||null,cover_url:r.cover_url||null,sort_order:Number(r.sort_order)||0,created_by:r.created_by||null,_search:normalizeSearch(name+" "+description+" "+category)};}
+function gameFromRow(r){return {id:r.id,name:r.name,desc:r.description||"",cat:r.category||CATS[0],emoji:"🎮",url:r.game_url||"",pub:!!r.is_published,feat:!!r.is_featured,cover_path:r.cover_path||null,cover_url:r.cover_url||null,sort_order:Number(r.sort_order)||0,created_by:r.created_by||null};}
 async function loadPersistentGames(){
   var pageSize=1000,batchSize=4,rows=[];
   var countQuery=supabaseClient.from("games").select("id",{count:"exact",head:true});
@@ -431,7 +386,7 @@ async function loadPersistentGames(){
     var batchEnd=Math.min(totalRows,offset+pageSize*batchSize);
     for(var pageOffset=offset;pageOffset<batchEnd;pageOffset+=pageSize){
       var query=supabaseClient.from("games")
-        .select(admin?"id,name,description,category,game_url,is_published,is_featured,cover_path,cover_url,sort_order,created_by":"id,name,description,category,is_published,is_featured,cover_url,sort_order")
+        .select("id,name,description,category,game_url,is_published,is_featured,cover_path,cover_url,sort_order,created_by")
         .order("sort_order",{ascending:true})
         .order("created_at",{ascending:true});
       if(!admin)query=query.eq("is_published",true);
@@ -473,7 +428,8 @@ async function refreshAdminState(session){
     if(!error&&data&&data.user_id===session.user.id){adminUser=session.user;admin=true;}
   }
   try{await loadPersistentGames();}catch(error){console.error("Error cargando el catálogo:",error);}
-  catalogLoaded=true;  adminChecked=true;
+  catalogLoaded=true;
+  adminChecked=true;
   var app=document.getElementById("app");
   if(app)app.setAttribute("aria-busy","false");
   render();
@@ -547,12 +503,13 @@ async function importGamesFromJson(file){
         seen.add(backupId);
         var backupExisting=existingById.get(backupId);
         if(backupExisting)updated++;else added++;
-        var safeCoverPath=typeof item.cover_path==="string"&&/^[0-9a-f-]{36}\.(?:jpg|png|webp)$/i.test(item.cover_path)?item.cover_path:null;
+        var safeCoverPath=typeof item.cover_path==="string"&&/^[0-9a-f-]{36}\\.(?:jpg|png|webp)$/i.test(item.cover_path)?item.cover_path:null;
         payload.push({id:backupId,name:backupName,description:backupDescription,category:CATS.indexOf(item.category)>=0?item.category:CATS[0],game_url:backupUrl,cover_path:backupExisting?backupExisting.cover_path||null:safeCoverPath,cover_url:validImportUrl(item.cover_url)||(backupExisting?backupExisting.cover_url||null:null),is_published:item.is_published===true,is_featured:item.is_featured===true,sort_order:Number.isFinite(Number(item.sort_order))?Number(item.sort_order):nextOrder++,created_by:backupExisting&&backupExisting.created_by?backupExisting.created_by:adminUser.id});
         continue;
       }
       var sourceId=String(item.id||item.slug||item.gameURL||item.game_url||"").trim();
-      var name=String(item.title||item.name||"").trim();      var gameUrl=validImportUrl(item.gameURL||item.game_url||item.url);
+      var name=String(item.title||item.name||"").trim();
+      var gameUrl=validImportUrl(item.gameURL||item.game_url||item.url);
       var description=String(item.description||"").trim();
       if(!sourceId||!name||name.length>60||description.length>10000||!gameUrl){invalid++;continue;}
       var imageValue=Array.isArray(item.images)?item.images[0]:(item.cover_url||item.image||"");
@@ -631,7 +588,8 @@ function gamesAdmin(){
   (pageItems.length?pageItems.map(function(g){var i=games.indexOf(g),selected=selectedGameIds.indexOf(String(g.id))!==-1;return '<div class="row admin-game-row"><label class="game-select"><input type="checkbox" data-select-game="'+esc(g.id)+'"'+(selected?' checked':'')+' aria-label="Seleccionar '+esc(g.name)+'"></label><span class="em">'+esc(g.emoji||"🎮")+'</span><div class="t"><b>'+esc(g.name)+'</b><small>'+esc(g.cat)+' · '+(g.pub?'<span class="ok">Publicado</span>':'<span class="er">Oculto</span>')+(g.feat?' · ⭐ Destacado':'')+'</small></div><div class="act">'+(adminSort==="order"&&!aq&&!adminCategory&&adminStatus==="all"?'<button class="btn sec sm" data-a="up" data-i="'+i+'" title="Subir">↑</button><button class="btn sec sm" data-a="dn" data-i="'+i+'" title="Bajar">↓</button>':"")+'<button class="btn sec sm" data-a="feat" data-i="'+i+'">'+(g.feat?'Quitar ⭐':'Destacar')+'</button><button class="btn sec sm" data-a="pub" data-i="'+i+'">'+(g.pub?'Ocultar':'Publicar')+'</button><button class="btn sec sm" data-a="edit" data-i="'+i+'">Editar</button><button class="btn bad sm" data-a="del" data-i="'+i+'">Eliminar</button></div></div>';}).join(""):'<div class="empty">No hay juegos que coincidan con estos filtros.</div>')+pager;
 }
 function hookBox(k,title,desc){
-  var w=cfg[k];  return '<div class="panel" style="margin-bottom:14px"><h2 style="margin-top:0">'+title+'</h2>'+
+  var w=cfg[k];
+  return '<div class="panel" style="margin-bottom:14px"><h2 style="margin-top:0">'+title+'</h2>'+
   '<p class="note" style="margin-top:0">'+desc+'</p>'+
   '<p class="note">La URL secreta se configura en Vercel como variable de entorno. No la pegues aquí ni la guardes en el navegador.</p>'+
   '<div class="chk" style="margin-top:12px"><input type="checkbox" data-on="'+k+'" id="on'+k+'"'+(w.on?' checked':'')+'><label style="margin:0;color:var(--tx)" for="on'+k+'">Notificaciones activadas</label></div>'+
@@ -642,7 +600,7 @@ function discordAdmin(){
   hookBox("w2","Webhook 2 · Seguridad","Avisos de inicio de sesión del administrador. Los intentos fallidos requieren autenticación gestionada en servidor.")+
   '<div class="panel"><h2 style="margin-top:0">Conexión segura</h2>'+
   '<p class="note">Endpoint: <code>/api/notify</code>. Las URLs de Discord se leen exclusivamente desde las variables de entorno de Vercel.</p>'+
-  '<label>Ruta del endpoint</label><input id="wr" value="'+esc(cfg.relay)+'" placeholder="/api/notify" readonly aria-label="Endpoint fijo de notificaciones">'+
+  '<label>Ruta del endpoint</label><input id="wr" value="'+esc(cfg.relay)+'" placeholder="/api/notify">'+
   '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="wsave">Guardar configuración</button><button class="btn sec" id="wtest">Probar ambos webhooks</button></div>'+
   '<p id="wm" class="note" role="status" aria-live="polite"></p></div>';
 }
@@ -710,7 +668,8 @@ function form(i){
       message.textContent=error&&error.message?error.message:"No se pudo guardar el juego.";
       button.disabled=false;
     }
-  };}
+  };
+}
 async function persistGameOrder(indices){
   var positions=Array.isArray(indices)?indices:[];
   var updates=positions.map(function(index){
@@ -789,7 +748,8 @@ async function deleteAllGames(){
   if(!confirm("Vas a eliminar DEFINITIVAMENTE los "+count+" juegos del catálogo, incluidos los ocultos. Esta acción no se puede deshacer. ¿Continuar?"))return;
   if(prompt('Para confirmar, escribe exactamente ELIMINAR:')!=="ELIMINAR")return;
 
-  bulkDeleteBusy=true;  var button=$("#deleteAllGames");
+  bulkDeleteBusy=true;
+  var button=$("#deleteAllGames");
   var status=$("#bulkDeleteStatus");
   if(button){button.disabled=true;button.textContent="Eliminando…";}
   if(status)status.textContent="Eliminando "+count+" juegos de forma segura…";
@@ -868,7 +828,8 @@ function render(){
 }
 function bind(isA){
   if(!isA){
-    $("#s").oninput=function(e){      q=e.target.value;
+    $("#s").oninput=function(e){
+      q=e.target.value;
       publicPage=1;
       if(searchTimer!==null)clearTimeout(searchTimer);
       searchTimer=setTimeout(function(){
@@ -888,8 +849,7 @@ function bind(isA){
         }
       },180);
     };
-    document.querySelectorAll("[data-public-category]").forEach(function(button){button.onclick=function(){fc=button.dataset.publicCategory||"";publicPage=1;render();};});
-    if($("#clearCategory"))$("#clearCategory").onclick=function(){fc="";publicPage=1;render();};
+    $("#c").onchange=function(e){fc=e.target.value;publicPage=1;render()};
     if($("#sort"))$("#sort").onchange=function(e){sortMode=e.target.value;publicPage=1;render()};
     if($("#favFilter"))$("#favFilter").onclick=function(){onlyFavorites=!onlyFavorites;publicPage=1;render()};
     if($("#randomGame"))$("#randomGame").onclick=function(){var pool=games.filter(function(g){return g.pub;});if(pool.length)location.hash="#play/"+encodeURIComponent(pool[Math.floor(Math.random()*pool.length)].id);};
@@ -947,7 +907,8 @@ function bind(isA){
   document.querySelectorAll("[data-global-bulk]").forEach(function(button){button.onclick=function(){bulkUpdateAllGames(button.dataset.globalBulk);};});
   if($("#bulkPublish"))$("#bulkPublish").onclick=function(){bulkUpdateGames("publish")};
   if($("#bulkHide"))$("#bulkHide").onclick=function(){bulkUpdateGames("hide")};
-  if($("#bulkFeature"))$("#bulkFeature").onclick=function(){bulkUpdateGames("feature")};  if($("#bulkUnfeature"))$("#bulkUnfeature").onclick=function(){bulkUpdateGames("unfeature")};
+  if($("#bulkFeature"))$("#bulkFeature").onclick=function(){bulkUpdateGames("feature")};
+  if($("#bulkUnfeature"))$("#bulkUnfeature").onclick=function(){bulkUpdateGames("unfeature")};
   if($("#bulkDelete"))$("#bulkDelete").onclick=function(){bulkUpdateGames("delete")};
   if($("#bulkClear"))$("#bulkClear").onclick=function(){selectedGameIds=[];render()};
   if($("#adminPrev"))$("#adminPrev").onclick=function(){adminPage=Math.max(1,adminPage-1);render()};
@@ -958,7 +919,7 @@ function bind(isA){
     var rd=function(){
       document.querySelectorAll("[data-on]").forEach(function(i){cfg[i.dataset.on].on=i.checked});
       document.querySelectorAll("[data-ev]").forEach(function(i){cfg[i.dataset.k].ev[i.dataset.ev]=i.checked});
-      cfg.relay="/api/notify";
+      cfg.relay=$("#wr").value.trim()||"/api/notify";
       save();
     };
     $("#wsave").onclick=function(){
@@ -1006,6 +967,5 @@ render();
   }
 });
 </script>
-<script src="/nova-upgrade.js" defer></script>
 </body>
 </html>
