@@ -473,12 +473,10 @@ async function accountAuthenticate(){
 }
 function loginView(){
   var notice=authNotice;authNotice="";
-  return '<div class="panel" style="margin:30px auto"><h2 style="margin-top:0">Acceso administrador</h2>'+ 
-  '<label>Correo electrónico</label><input type="email" id="authEmail" autocomplete="username" maxlength="254" required>'+ 
-  '<label>Contraseña</label><input type="password" id="authPassword" autocomplete="current-password" minlength="12" required>'+ 
-  '<p id="msg" class="er" role="status" aria-live="polite" style="min-height:20px">'+esc(notice)+'</p>'+ 
-  '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="authLogin">Iniciar sesión</button><button class="btn sec" id="authPasskey" type="button">Entrar con passkey</button><button class="btn sec" id="authForgot" type="button">He olvidado mi contraseña</button></div>'+ 
-  '<p class="note">Acceso exclusivo para administradores autorizados. Para crear una cuenta normal, utiliza la sección Mi cuenta.</p></div>';
+  return '<div class="panel" style="margin:30px auto;text-align:center"><h2 style="margin-top:0">Acceso administrador</h2>'+
+  '<p class="note">Acceso exclusivo mediante passkey. Confirma tu identidad con Windows Hello, PIN, huella o tu gestor de passkeys.</p>'+
+  '<p id="msg" class="er" role="status" aria-live="polite" style="min-height:20px">'+esc(notice)+'</p>'+
+  '<button class="btn" id="authPasskey" type="button">Entrar con passkey</button></div>';
 }
 function passwordRecoveryView(){
   return '<div class="panel" style="margin:30px auto"><h2 style="margin-top:0">Restablecer contraseña</h2>'+
@@ -1030,44 +1028,6 @@ function bind(isA){
       };
       return;
     }
-    $("#authForgot").onclick=async function(){
-      if(authBusy)return;
-      var email=$("#authEmail").value.trim().toLowerCase();
-      var message=$("#msg");
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message.textContent="Introduce tu correo electrónico para enviarte el enlace.";return;}
-      authBusy=true;$("#authForgot").disabled=true;message.textContent="Solicitando enlace de recuperación…";
-      try{
-        var recoveryResult=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/"});
-        if(recoveryResult.error)throw recoveryResult.error;
-        message.textContent="Si la cuenta existe, recibirás un correo con el enlace para cambiar la contraseña. Revisa también spam.";
-      }catch(error){message.textContent=error&&error.message?error.message:"No se pudo solicitar el restablecimiento.";} 
-      finally{authBusy=false;if($("#authForgot"))$("#authForgot").disabled=false;}
-    };
-    async function authenticate(){
-      if(authBusy)return;
-      var email=$("#authEmail").value.trim().toLowerCase();
-      var password=$("#authPassword").value;
-      var message=$("#msg");
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message.textContent="Introduce un correo electrónico válido.";return;}
-      if(password.length<12||password.length>128){message.textContent="La contraseña debe tener entre 12 y 128 caracteres.";return;}
-      authBusy=true;
-      $("#authLogin").disabled=true;
-      message.textContent="Iniciando sesión…";
-      try{
-        var result=await supabaseClient.auth.signInWithPassword({email:email,password:password});
-        if(result.error)throw result.error;
-        await refreshAdminState(result.data.session);
-        if(!admin){
-          message.textContent="Esta cuenta no tiene permisos de administrador.";
-          await supabaseClient.auth.signOut();
-          adminSession=null;adminUser=null;adminChecked=true;
-          render();
-          if($("#msg"))$("#msg").textContent="Esta cuenta no tiene permisos de administrador. Accede desde Mi cuenta.";
-        }else{notify("login",{name:"Panel"});}
-      }catch(error){message.textContent=error&&error.message?error.message:"No se pudo iniciar sesión.";}
-      finally{authBusy=false;if($("#authLogin"))$("#authLogin").disabled=false;}
-    }
-    $("#authLogin").onclick=function(){authenticate()};
     if($("#authPasskey"))$("#authPasskey").onclick=async function(){
       if(authBusy)return;
       var button=$("#authPasskey"),message=$("#msg");
@@ -1095,7 +1055,6 @@ function bind(isA){
         if($("#authPasskey")){$("#authPasskey").disabled=false;$("#authPasskey").textContent="Entrar con passkey";}
       }
     };
-    $("#authPassword").onkeydown=function(e){if(e.key==="Enter")authenticate()};
     return;
   }
   $("#ver").onclick=function(){location.hash=""};
