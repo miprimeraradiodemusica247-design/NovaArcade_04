@@ -189,7 +189,7 @@ function ld(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catc
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 var games=ld("na_games",[]),catalogLoaded=false;
 var DEF={w1:{url:"",on:false,ev:{add:true,edit:true,publish:true,hide:true,del:true,login:false,fail:false}},w2:{url:"",on:false,ev:{add:false,edit:false,publish:false,hide:false,del:false,login:true,fail:true}},relay:"/api/notify"};
-var cfg=Object.assign({},DEF,ld("na_cfg",{}));
+var cfg=Object.assign({},DEF,ld("na_cfg",{}));cfg.relay="/api/notify";
 var adminSession=null;
 var adminUser=null;
 var adminChecked=false;
@@ -249,7 +249,7 @@ async function send(k,ev,g){
     return false;
   }
   try{
-    var response=await fetch(cfg.relay,{
+    var response=await fetch("/api/notify",{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
@@ -600,7 +600,7 @@ function discordAdmin(){
   hookBox("w2","Webhook 2 · Seguridad","Avisos de inicio de sesión del administrador. Los intentos fallidos requieren autenticación gestionada en servidor.")+
   '<div class="panel"><h2 style="margin-top:0">Conexión segura</h2>'+
   '<p class="note">Endpoint: <code>/api/notify</code>. Las URLs de Discord se leen exclusivamente desde las variables de entorno de Vercel.</p>'+
-  '<label>Ruta del endpoint</label><input id="wr" value="'+esc(cfg.relay)+'" placeholder="/api/notify">'+
+  '<label>Ruta del endpoint</label><input id="wr" value="'+esc(cfg.relay)+'" placeholder="/api/notify" readonly aria-label="Endpoint fijo de notificaciones">'+
   '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="wsave">Guardar configuración</button><button class="btn sec" id="wtest">Probar ambos webhooks</button></div>'+
   '<p id="wm" class="note" role="status" aria-live="polite"></p></div>';
 }
@@ -919,7 +919,7 @@ function bind(isA){
     var rd=function(){
       document.querySelectorAll("[data-on]").forEach(function(i){cfg[i.dataset.on].on=i.checked});
       document.querySelectorAll("[data-ev]").forEach(function(i){cfg[i.dataset.k].ev[i.dataset.ev]=i.checked});
-      cfg.relay=$("#wr").value.trim()||"/api/notify";
+      cfg.relay="/api/notify";
       save();
     };
     $("#wsave").onclick=function(){
