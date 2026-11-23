@@ -196,6 +196,7 @@ var adminChecked=false;
 var authBusy=false;
 var passwordRecoveryMode=false;
 var authNotice="";
+var accountMode="signup";
 var supabaseClient=window.supabase.createClient(
   "https://eyntsvwjesmxzfkuxukj.supabase.co",
   "sb_publishable_qIBYHgmaPKpWPD2JVl5h7Q_EwpNr9b6",
@@ -363,14 +364,59 @@ function bindPlayer(){
 }
 
 /* ---------- Admin ---------- */
+function accountView(){
+  if(adminSession&&adminSession.user){
+    var accountEmail=esc(adminSession.user.email||"Cuenta autenticada");
+    return '<section class="panel" style="margin:30px auto"><h2 style="margin-top:0">Mi cuenta</h2><p>Has iniciado sesión como <strong>'+accountEmail+'</strong>.</p><p class="note">Tu cuenta es independiente del acceso de administrador. Crear una cuenta no concede permisos especiales.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sec" id="accountLogout" type="button">Cerrar sesión</button>'+(admin?'<a class="btn" href="#admin" style="text-decoration:none">Panel administrador</a>':'')+'</div></section>';
+  }
+  var creating=accountMode==="signup";
+  return '<section class="panel" style="margin:30px auto"><h2 style="margin-top:0">'+(creating?"Crear tu cuenta":"Iniciar sesión")+'</h2>'+
+  '<p class="note">'+(creating?"Regístrate gratis para tener tu propia cuenta en NOVA ARCADE.":"Entra con el correo y la contraseña de tu cuenta.")+'</p>'+
+  '<label for="accountEmail">Correo electrónico</label><input id="accountEmail" type="email" autocomplete="email" maxlength="254" required>'+
+  '<label for="accountPassword">Contraseña</label><input id="accountPassword" type="password" autocomplete="'+(creating?"new-password":"current-password")+'" minlength="12" maxlength="128" required>'+
+  (creating?'<label for="accountConfirmPassword">Repite la contraseña</label><input id="accountConfirmPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>':'')+
+  '<p id="accountMessage" class="note" role="status" aria-live="polite" style="min-height:20px"></p>'+
+  '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="accountSubmit" type="button">'+(creating?"Crear cuenta":"Iniciar sesión")+'</button><button class="btn sec" id="accountModeToggle" type="button">'+(creating?"Ya tengo una cuenta":"Crear una cuenta")+'</button></div>'+
+  '<p class="note">La contraseña debe tener al menos 12 caracteres. Si se solicita confirmar el correo, revisa tu bandeja de entrada y spam.</p></section>';
+}
+async function accountAuthenticate(){
+  if(authBusy)return;
+  var email=$("#accountEmail").value.trim().toLowerCase();
+  var password=$("#accountPassword").value;
+  var message=$("#accountMessage");
+  var creating=accountMode==="signup";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message.textContent="Introduce un correo electrónico válido.";return;}
+  if(password.length<12||password.length>128){message.textContent="La contraseña debe tener entre 12 y 128 caracteres.";return;}
+  if(creating&&password!==$("#accountConfirmPassword").value){message.textContent="Las contraseñas no coinciden.";return;}
+  authBusy=true;
+  $("#accountSubmit").disabled=true;
+  message.textContent=creating?"Creando tu cuenta…":"Iniciando sesión…";
+  try{
+    var result=creating
+      ?await supabaseClient.auth.signUp({email:email,password:password,options:{emailRedirectTo:window.location.origin+"/"}})
+      :await supabaseClient.auth.signInWithPassword({email:email,password:password});
+    if(result.error)throw result.error;
+    if(creating&&!result.data.session){
+      message.textContent="Tu cuenta se ha registrado. Confirma tu correo desde el enlace que te hemos enviado y después vuelve para iniciar sesión.";
+      return;
+    }
+    if(!result.data.session)throw new Error("No se pudo iniciar la sesión. Confirma primero tu correo electrónico.");
+    await refreshAdminState(result.data.session);
+  }catch(error){
+    message.textContent=error&&error.message?error.message:"No se pudo completar el registro.";
+  }finally{
+    authBusy=false;
+    if($("#accountSubmit"))$("#accountSubmit").disabled=false;
+  }
+}
 function loginView(){
   var notice=authNotice;authNotice="";
   return '<div class="panel" style="margin:30px auto"><h2 style="margin-top:0">Acceso administrador</h2>'+ 
   '<label>Correo electrónico</label><input type="email" id="authEmail" autocomplete="username" maxlength="254" required>'+ 
   '<label>Contraseña</label><input type="password" id="authPassword" autocomplete="current-password" minlength="12" required>'+ 
   '<p id="msg" class="er" role="status" aria-live="polite" style="min-height:20px">'+esc(notice)+'</p>'+ 
-  '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="authLogin">Iniciar sesión</button><button class="btn sec" id="authSignup">Crear cuenta</button><button class="btn sec" id="authForgot" type="button">He olvidado mi contraseña</button></div>'+ 
-  '<p class="note">Acceso protegido por Supabase Auth. Crear una cuenta no concede permisos de administrador: el usuario debe estar autorizado en el registro protegido de administradores.</p></div>';
+  '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="authLogin">Iniciar sesión</button><button class="btn sec" id="authForgot" type="button">He olvidado mi contraseña</button></div>'+ 
+  '<p class="note">Acceso exclusivo para administradores autorizados. Para crear una cuenta normal, utiliza la sección Mi cuenta.</p></div>';
 }
 function passwordRecoveryView(){
   return '<div class="panel" style="margin:30px auto"><h2 style="margin-top:0">Restablecer contraseña</h2>'+
@@ -834,13 +880,40 @@ async function act(a,i){
 }
 /* ---------- Render ---------- */
 function render(){
-  var isA=location.hash==="#admin",isPlay=location.hash.indexOf("#play/")===0;
-  if(isPlay){$("#nav").innerHTML='<a class="btn sec sm" href="#">Inicio</a>';$("#app").innerHTML=gamePlayerView();bindPlayer();return;}
-  $("#nav").innerHTML=isA&&admin?'<button class="btn sec sm" id="ver">Ver web</button> <button class="btn sec sm" id="out">Cerrar sesión</button>':isA?'':'<a class="btn sec sm" style="text-decoration:none" href="#admin">Admin</a>';
+  var isA=location.hash==="#admin",isAccount=location.hash==="#cuenta",isPlay=location.hash.indexOf("#play/")===0;
+  if(isPlay){$("#nav").innerHTML='<a class="btn sec sm" href="#cuenta">Mi cuenta</a> <a class="btn sec sm" href="#">Inicio</a>';$("#app").innerHTML=gamePlayerView();bindPlayer();return;}
+  if(isAccount){
+    $("#nav").innerHTML='<a class="btn sec sm" href="#">Inicio</a> <a class="btn sec sm" href="#admin">Admin</a>';
+    $("#app").innerHTML=accountView();
+    bind(false);
+    return;
+  }
+  $("#nav").innerHTML=isA&&admin?'<button class="btn sec sm" id="ver">Ver web</button> <button class="btn sec sm" id="out">Cerrar sesión</button>':isA?'':'<a class="btn sec sm" style="text-decoration:none" href="#cuenta">Mi cuenta</a> <a class="btn sec sm" style="text-decoration:none" href="#admin">Admin</a>';
   $("#app").innerHTML=isA?(passwordRecoveryMode?passwordRecoveryView():(!adminChecked?authLoadingView():(admin?adminView():loginView()))):(catalogLoaded?pubView():catalogLoadingView());
   if(!isA || adminChecked || passwordRecoveryMode) bind(isA);
 }
 function bind(isA){
+  if(location.hash==="#cuenta"){
+    if(adminSession&&adminSession.user){
+      if($("#accountLogout"))$("#accountLogout").onclick=async function(){
+        if(authBusy)return;
+        authBusy=true;
+        try{await supabaseClient.auth.signOut();}
+        finally{
+          adminSession=null;adminUser=null;admin=false;adminChecked=true;authBusy=false;render();
+        }
+      };
+    }else{
+      if($("#accountSubmit"))$("#accountSubmit").onclick=accountAuthenticate;
+      if($("#accountModeToggle"))$("#accountModeToggle").onclick=function(){
+        accountMode=accountMode==="signup"?"login":"signup";
+        render();
+      };
+      if($("#accountPassword"))$("#accountPassword").onkeydown=function(e){if(e.key==="Enter")accountAuthenticate();};
+      if($("#accountConfirmPassword"))$("#accountConfirmPassword").onkeydown=function(e){if(e.key==="Enter")accountAuthenticate();};
+    }
+    return;
+  }
   if(!isA){
     $("#s").oninput=function(e){
       q=e.target.value;
@@ -908,31 +981,32 @@ function bind(isA){
       }catch(error){message.textContent=error&&error.message?error.message:"No se pudo solicitar el restablecimiento.";} 
       finally{authBusy=false;if($("#authForgot"))$("#authForgot").disabled=false;}
     };
-    async function authenticate(createAccount){
+    async function authenticate(){
       if(authBusy)return;
       var email=$("#authEmail").value.trim().toLowerCase();
       var password=$("#authPassword").value;
       var message=$("#msg");
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message.textContent="Introduce un correo electrónico válido.";return;}
-      if(password.length<12){message.textContent="La contraseña debe tener al menos 12 caracteres.";return;}
+      if(password.length<12||password.length>128){message.textContent="La contraseña debe tener entre 12 y 128 caracteres.";return;}
       authBusy=true;
-      $("#authLogin").disabled=true;$("#authSignup").disabled=true;
-      message.textContent=createAccount?"Creando cuenta…":"Iniciando sesión…";
+      $("#authLogin").disabled=true;
+      message.textContent="Iniciando sesión…";
       try{
-        var result=createAccount
-          ?await supabaseClient.auth.signUp({email:email,password:password})
-          :await supabaseClient.auth.signInWithPassword({email:email,password:password});
+        var result=await supabaseClient.auth.signInWithPassword({email:email,password:password});
         if(result.error)throw result.error;
-        if(createAccount&&!result.data.session){message.textContent="Cuenta creada. Revisa tu correo para confirmar la dirección y después inicia sesión.";return;}
         await refreshAdminState(result.data.session);
-        if(!admin){message.textContent="La cuenta se ha autenticado, pero no tiene permisos de administrador.";await supabaseClient.auth.signOut();adminSession=null;adminChecked=true;render();$("#msg").textContent="Usuario sin permisos de administrador. Contacta con el propietario.";}
-        else{notify("login",{name:"Panel"});}
-      }catch(error){message.textContent=error&&error.message?error.message:"No se pudo completar la autenticación.";}
-      finally{authBusy=false;if($("#authLogin"))$("#authLogin").disabled=false;if($("#authSignup"))$("#authSignup").disabled=false;}
+        if(!admin){
+          message.textContent="Esta cuenta no tiene permisos de administrador.";
+          await supabaseClient.auth.signOut();
+          adminSession=null;adminUser=null;adminChecked=true;
+          render();
+          if($("#msg"))$("#msg").textContent="Esta cuenta no tiene permisos de administrador. Accede desde Mi cuenta.";
+        }else{notify("login",{name:"Panel"});}
+      }catch(error){message.textContent=error&&error.message?error.message:"No se pudo iniciar sesión.";}
+      finally{authBusy=false;if($("#authLogin"))$("#authLogin").disabled=false;}
     }
-    $("#authLogin").onclick=function(){authenticate(false)};
-    $("#authSignup").onclick=function(){authenticate(true)};
-    $("#authPassword").onkeydown=function(e){if(e.key==="Enter")authenticate(false)};
+    $("#authLogin").onclick=function(){authenticate()};
+    $("#authPassword").onkeydown=function(e){if(e.key==="Enter")authenticate()};
     return;
   }
   $("#ver").onclick=function(){location.hash=""};
