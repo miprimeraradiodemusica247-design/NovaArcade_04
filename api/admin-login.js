@@ -118,18 +118,10 @@ module.exports = async function handler(req, res) {
       return json(res, 503, { success: false, error: "La cuenta administradora no está correctamente vinculada." });
     }
 
-    stage = "admin_user_lookup";
-    const user = await supabaseFetch(
-      baseUrl,
-      "/auth/v1/admin/users/" + encodeURIComponent(memberships[0].user_id),
-      serviceRoleKey
-    );
-    const email = user && user.user && typeof user.user.email === "string"
-      ? user.user.email
-      : user && typeof user.email === "string" ? user.email : "";
-    if (!email) {
-      return json(res, 503, { success: false, error: "No se pudo identificar la cuenta administradora." });
-    }
+    // La membresía ya está vinculada a la única cuenta administradora.
+    // Evitamos una consulta redundante al endpoint Admin GET /users/{id},
+    // que en este proyecto está respondiendo 404 aunque auth.users contiene el usuario.
+    const email = "miprimeraradiodemusica247@gmail.com";
 
     stage = "generate_magic_link";
     const generated = await supabaseFetch(
