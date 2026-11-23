@@ -367,7 +367,7 @@ function loginView(){
   '<label>Contraseña</label><input type="password" id="authPassword" autocomplete="current-password" minlength="12" required>'+ 
   '<p id="msg" class="er" role="status" aria-live="polite" style="min-height:20px"></p>'+ 
   '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="authLogin">Iniciar sesión</button><button class="btn sec" id="authSignup">Crear cuenta</button></div>'+ 
-  '<p class="note">Acceso protegido por Supabase Auth. Crear una cuenta no concede permisos de administrador: el usuario debe estar autorizado en la tabla privada de administradores.</p></div>';
+  '<p class="note">Acceso protegido por Supabase Auth. Crear una cuenta no concede permisos de administrador: el usuario debe estar autorizado en el registro protegido de administradores.</p></div>';
 }
 function authLoadingView(){
   return '<div class="panel" style="margin:30px auto"><p>Verificando sesión y permisos…</p></div>';
