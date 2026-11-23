@@ -23,7 +23,7 @@ module.exports = async function handler(req, res) {
   let endpoint;
   try {
     const base = new URL(supabaseUrl);
-    if (base.protocol !== "https:" || !/^[a-z0-9-]+\\.supabase\\.co$/i.test(base.hostname)) {
+    if (base.protocol !== "https:" || !/^[a-z0-9-]+\.supabase\.co$/i.test(base.hostname)) {
       return send(res, 503, { ok: false, error: "Supabase configuration is invalid" });
     }
     endpoint = new URL("/rest/v1/games", base);
