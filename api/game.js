@@ -68,7 +68,7 @@ module.exports = async function handler(req, res) {
     }).toString();
 
     const response = await fetch(endpoint, {
-      headers: { apikey: supabaseKey, Authorization: "Bearer " + supabaseKey, Accept: "application/json" },
+      headers: { apikey: supabaseKey, Accept: "application/json" },
       signal: AbortSignal.timeout(7000)
     });
     if (!response.ok) throw new Error("Supabase HTTP " + response.status);
@@ -104,7 +104,7 @@ module.exports = async function handler(req, res) {
           limit: "4"
         }).toString();
         const relatedResponse = await fetch(relatedEndpoint, {
-          headers: { apikey: supabaseKey, Authorization: "Bearer " + supabaseKey, Accept: "application/json" },
+          headers: { apikey: supabaseKey, Accept: "application/json" },
           signal: AbortSignal.timeout(4000)
         });
         if (relatedResponse.ok) {
