@@ -338,14 +338,16 @@ function pubView(){
  if(sortMode==="az")list.sort(function(a,b){return a.name.localeCompare(b.name,"es");});
  if(sortMode==="za")list.sort(function(a,b){return b.name.localeCompare(a.name,"es");});
  if(sortMode==="featured")list.sort(function(a,b){return Number(!!b.feat)-Number(!!a.feat);});
+ if(sortMode==="newest")list.sort(function(a,b){var dateA=Date.parse(a.created_at||"")||0,dateB=Date.parse(b.created_at||"")||0;return dateB-dateA||(Number(b.sort_order)||0)-(Number(a.sort_order)||0);});
  var totalPages=Math.max(1,Math.ceil(list.length/PUBLIC_PAGE_SIZE));
  if(publicPage>totalPages)publicPage=totalPages;
  var pageItems=list.slice((publicPage-1)*PUBLIC_PAGE_SIZE,publicPage*PUBLIC_PAGE_SIZE);
  var pager=list.length>PUBLIC_PAGE_SIZE?'<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:22px 0"><button class="btn sec sm" id="publicPrev"'+(publicPage<=1?' disabled':'')+'>← Anterior</button><span>Página '+publicPage+' de '+totalPages+' · '+list.length+' juegos</span><button class="btn sec sm" id="publicNext"'+(publicPage>=totalPages?' disabled':'')+'>Siguiente →</button></div>':"";
  var opts=CATS.map(function(c){return '<option value="'+esc(c)+'"'+(c===fc?' selected':'')+'>'+esc(c)+'</option>';}).join("");
  return '<section class="hero"><span class="eyebrow">TU UNIVERSO DE JUEGOS</span><h1>Juegos online gratis para jugar al instante.</h1><p>Descubre juegos online gratis: juegos de acción, disparos, coches, carreras, aventuras, deportes y mucho más. Explora el catálogo, encuentra juegos para navegador y empieza a jugar.</p><div class="hero-stats"><span>🎮 '+vis.length+' juegos</span><span>⚡ Sin descargas</span><span>♥ Favoritos</span></div></section>'+
- '<div class="bar main-search"><input id="s" type="search" aria-label="Buscar juegos" placeholder="Buscar juegos…" value="'+esc(q)+'"><select id="c" aria-label="Filtrar juegos por categoría"><option value="">Todas las categorías</option>'+opts+'</select><select id="sort" aria-label="Ordenar juegos"><option value="popular"'+(sortMode==="popular"?" selected":"")+'>Recomendados</option><option value="az"'+(sortMode==="az"?" selected":"")+'>Nombre A-Z</option><option value="za"'+(sortMode==="za"?" selected":"")+'>Nombre Z-A</option><option value="featured"'+(sortMode==="featured"?" selected":"")+' >Destacados primero</option></select><button class="btn sec" id="favFilter">'+(onlyFavorites?"♥ Todos":"♡ Favoritos")+'</button><button class="btn sec" id="randomGame">🎲 Juego aleatorio</button><button class="btn sec" id="clearFilters">Limpiar filtros</button></div>'+
- (!q&&!fc&&!onlyFavorites?section("⭐ Destacados",feat)+section("🕹️ Seguir jugando",recent)+section("♥ Tus favoritos",favs):"")+
+ '<div class="bar main-search"><input id="s" type="search" aria-label="Buscar juegos" placeholder="Buscar juegos…" value="'+esc(q)+'"><select id="c" aria-label="Filtrar juegos por categoría"><option value="">Todas las categorías</option>'+opts+'</select><select id="sort" aria-label="Ordenar juegos"><option value="popular"'+(sortMode==="popular"?" selected":"")+'>Recomendados</option><option value="az"'+(sortMode==="az"?" selected":"")+'>Nombre A-Z</option><option value="za"'+(sortMode==="za"?" selected":"")+'>Nombre Z-A</option><option value="featured"'+(sortMode==="featured"?" selected":"")+' >Destacados primero</option><option value="newest"'+(sortMode==="newest"?" selected":"")+' >Novedades</option></select><button class="btn sec" id="favFilter">'+(onlyFavorites?"♥ Todos":"♡ Favoritos")+'</button><button class="btn sec" id="randomGame">🎲 Juego aleatorio</button><button class="btn sec" id="clearFilters">Limpiar filtros</button></div>'+
+ '<nav class="quick-categories" aria-label="Accesos rápidos a categorías">'+CATS.slice(0,12).map(function(category){return '<button type="button" data-category="'+esc(category)+'" aria-pressed="'+(fc===category?"true":"false")+'">'+esc(category)+'</button>';}).join("")+'</nav>'+
+ (!q&&!fc&&!onlyFavorites?section("⭐ Destacados",feat)+section("🆕 Recién añadidos",vis.slice().sort(function(a,b){return (Date.parse(b.created_at||"")||0)-(Date.parse(a.created_at||"")||0);}).slice(0,8))+section("🕹️ Seguir jugando",recent)+section("♥ Tus favoritos",favs):"")+
  '<section class="game-section"><h2>'+(onlyFavorites?"Tus favoritos":"Explorar juegos")+'</h2>'+(pageItems.length?'<div class="grid">'+pageItems.map(card).join("")+'</div>':'<div class="empty">No encontramos juegos.</div>')+pager+'</section>';
 }
 function gamePlayerView(){
@@ -493,7 +495,7 @@ function passwordRecoveryView(){
 function authLoadingView(){
   return '<div class="panel" style="margin:30px auto"><p>Verificando sesión y permisos…</p></div>';
 }
-function gameFromRow(r){var name=r.name||"",description=r.description||"",category=r.category||CATS[0];return {id:r.id,name:name,desc:description,cat:category,emoji:"🎮",url:r.game_url||"",pub:!!r.is_published,feat:!!r.is_featured,cover_path:r.cover_path||null,cover_url:r.cover_url||null,sort_order:Number(r.sort_order)||0,created_by:r.created_by||null,_search:normalizeSearch(name+" "+description+" "+category)};}
+function gameFromRow(r){var name=r.name||"",description=r.description||"",category=r.category||CATS[0];return {id:r.id,name:name,desc:description,cat:category,emoji:"🎮",url:r.game_url||"",pub:!!r.is_published,feat:!!r.is_featured,cover_path:r.cover_path||null,cover_url:r.cover_url||null,sort_order:Number(r.sort_order)||0,created_at:r.created_at||null,created_by:r.created_by||null,_search:normalizeSearch(name+" "+description+" "+category)};}
 async function loadPersistentGames(){
   var pageSize=1000,batchSize=4,rows=[];
   var countQuery=supabaseClient.from("games").select("id",{count:"exact",head:true});
@@ -507,7 +509,7 @@ async function loadPersistentGames(){
     var batchEnd=Math.min(totalRows,offset+pageSize*batchSize);
     for(var pageOffset=offset;pageOffset<batchEnd;pageOffset+=pageSize){
       var query=supabaseClient.from("games")
-        .select("id,name,description,category,game_url,is_published,is_featured,cover_path,cover_url,sort_order,created_by")
+        .select("id,name,description,category,game_url,is_published,is_featured,cover_path,cover_url,sort_order,created_at,created_by")
         .order("sort_order",{ascending:true})
         .order("created_at",{ascending:true})
         .order("id",{ascending:true});
@@ -979,6 +981,7 @@ function bind(isA){
     return;
   }
   if(!isA){
+    document.querySelectorAll("[data-category]").forEach(function(button){button.onclick=function(){fc=button.dataset.category||"";publicPage=1;render();};});
     $("#s").oninput=function(e){
       q=e.target.value;
       publicPage=1;
