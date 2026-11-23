@@ -15,6 +15,7 @@ module.exports = async function handler(req, res) {
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+  const notificationsConfigured = Boolean(process.env.WEBHOOK_1_CATALOGO && process.env.WEBHOOK_2_SEGURIDAD);
 
   if (!supabaseUrl || !publishableKey) {
     return send(res, 503, { ok: false, error: "Supabase configuration is incomplete" });
@@ -58,7 +59,11 @@ module.exports = async function handler(req, res) {
 
     return send(res, 200, req.method === "HEAD" ? {} : {
       ok: true,
-      services: { supabase: "ok" }
+      degraded: !notificationsConfigured,
+      services: {
+        supabase: "ok",
+        notifications: notificationsConfigured ? "ok" : "not_configured"
+      }
     });
   } catch (error) {
     console.error("Supabase health check failed:", error && error.name ? error.name : "unknown");
