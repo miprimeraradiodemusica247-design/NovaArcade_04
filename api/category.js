@@ -92,7 +92,7 @@ module.exports = async function handler(req, res) {
       select: "id,name,description,category,cover_url",
       category: "eq." + category.name,
       is_published: "eq.true",
-      order: "sort_order.asc,name.asc",
+      order: "sort_order.asc,name.asc,id.asc",
       limit: String(PAGE_SIZE),
       offset: String((page - 1) * PAGE_SIZE)
     }).toString();
