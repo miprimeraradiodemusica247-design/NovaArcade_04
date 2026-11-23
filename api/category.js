@@ -100,7 +100,6 @@ module.exports = async function handler(req, res) {
     const response = await fetch(endpoint, {
       headers: {
         apikey: supabaseKey,
-        Authorization: "Bearer " + supabaseKey,
         Accept: "application/json",
         Prefer: "count=exact"
       },
