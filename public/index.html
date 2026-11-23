@@ -331,7 +331,7 @@ function pubView(){
  var recent=recentGames.map(function(id){return vis.find(function(g){return String(g.id)===String(id);});}).filter(Boolean);
  var favs=vis.filter(function(g){return isFavorite(g.id);});
  var normalizedQuery=normalizeSearch(q);
- var list=vis.filter(function(g){return(!fc||g.cat===fc)&&(!onlyFavorites||isFavorite(g.id))&&(!normalizedQuery||normalizeSearch(g.name+" "+g.desc+" "+g.cat).indexOf(normalizedQuery)>-1);});
+ var list=vis.filter(function(g){var searchable=g._search||normalizeSearch(g.name+" "+g.desc+" "+g.cat);return(!fc||g.cat===fc)&&(!onlyFavorites||isFavorite(g.id))&&(!normalizedQuery||searchable.indexOf(normalizedQuery)>-1);});
  if(sortMode==="az")list.sort(function(a,b){return a.name.localeCompare(b.name,"es");});
  if(sortMode==="za")list.sort(function(a,b){return b.name.localeCompare(a.name,"es");});
  if(sortMode==="featured")list.sort(function(a,b){return Number(!!b.feat)-Number(!!a.feat);});
@@ -372,7 +372,7 @@ function loginView(){
 function authLoadingView(){
   return '<div class="panel" style="margin:30px auto"><p>Verificando sesión y permisos…</p></div>';
 }
-function gameFromRow(r){return {id:r.id,name:r.name,desc:r.description||"",cat:r.category||CATS[0],emoji:"🎮",url:r.game_url||"",pub:!!r.is_published,feat:!!r.is_featured,cover_path:r.cover_path||null,cover_url:r.cover_url||null,sort_order:Number(r.sort_order)||0,created_by:r.created_by||null};}
+function gameFromRow(r){var name=r.name||"",description=r.description||"",category=r.category||CATS[0];return {id:r.id,name:name,desc:description,cat:category,emoji:"🎮",url:r.game_url||"",pub:!!r.is_published,feat:!!r.is_featured,cover_path:r.cover_path||null,cover_url:r.cover_url||null,sort_order:Number(r.sort_order)||0,created_by:r.created_by||null,_search:normalizeSearch(name+" "+description+" "+category)};}
 async function loadPersistentGames(){
   var pageSize=1000,batchSize=4,rows=[];
   var countQuery=supabaseClient.from("games").select("id",{count:"exact",head:true});
