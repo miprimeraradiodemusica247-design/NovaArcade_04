@@ -1,0 +1,122 @@
+name: Quality checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    name: Static and security checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Check API JavaScript syntax
+        run: |
+          for file in api/*.js; do
+            node --check "$file"
+          done
+
+      - name: Validate Vercel SEO routes
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const config = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+          const routes = config.rewrites || [];
+          for (const [source, destination] of [
+            ['/juego/:id', '/api/game?id=:id'],
+            ['/categoria/:slug', '/api/category?slug=:slug'],
+            ['/sitemap.xml', '/api/sitemap']
+          ]) {
+            if (!routes.some((route) => route.source === source && route.destination === destination)) {
+              throw new Error(`Missing Vercel rewrite: ${source} -> ${destination}`);
+            }
+          }
+          if (fs.existsSync('public/sitemap.xml')) {
+            throw new Error('Remove the static sitemap so the dynamic sitemap rewrite can run.');
+          }
+          console.log('Vercel SEO routes: OK');
+          NODE
+
+      - name: Check browser JavaScript syntax and HTML essentials
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('public/index.html', 'utf8');
+          const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)];
+          const appScripts = scripts
+            .map((match) => match[1])
+            .filter((script) => script.includes('window.__novaSupabaseReady.then'));
+
+          if (appScripts.length !== 1) {
+            throw new Error('Expected one application script, found ' + appScripts.length);
+          }
+          if (!/<html\s+lang="es"/i.test(html)) {
+            throw new Error('Missing Spanish document language');
+          }
+          if (!/<meta\s+name="viewport"/i.test(html)) {
+            throw new Error('Missing responsive viewport');
+          }
+          if (!html.includes('id="app" aria-busy="true"')) {
+            throw new Error('Missing static initial loading state');
+          }
+
+          for (const match of scripts) {
+            if (match[0].includes('application/ld+json')) {
+              JSON.parse(match[1]);
+            }
+          }
+          new Function(appScripts[0]);
+          console.log('HTML essentials, structured data and application JavaScript syntax: OK');
+          NODE
+      - name: Ensure local environment files are not tracked
+        run: |
+          if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -vE '(^|/)\.env\.example$'; then
+            echo "A local environment file is tracked by Git."
+            exit 1
+          fi
+          echo "No local environment files tracked."
+      - name: Check category routes, backup cover validation and admin relay security
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const html = fs.readFileSync('public/index.html', 'utf8');
+          const categorySource = fs.readFileSync('api/category.js', 'utf8');
+
+          const categoryMatch = html.match(/var CATS=\[([^\]]+)\]/);
+          assert(categoryMatch, 'Cannot read storefront categories.');
+          const categories = [...categoryMatch[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+          const routeKeys = [...categorySource.matchAll(/^\s*"([^"]+)": \{/gm)].map((match) => match[1]);
+          const slug = (value) => value.normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+          const missingRoutes = categories.map(slug).filter((value) => !routeKeys.includes(value));
+          assert.deepEqual(missingRoutes, [], 'Missing SEO category routes: ' + missingRoutes.join(', '));
+          assert(!categorySource.includes('}).join("\\\\n");'), 'SEO cards must not render literal backslash-n text.');
+
+          const backupLine = html.split('\n').find((line) => line.includes('var safeCoverPath='));
+          const backupPattern = backupLine && backupLine.match(/&&\/(.*?)\/i\.test/);
+          assert(backupPattern, 'Backup cover path validator not found.');
+          const coverPathRegex = new RegExp(backupPattern[1], 'i');
+          const coverId = '123e4567-e89b-12d3-a456-426614174000';
+          for (const extension of ['jpg', 'png', 'webp']) {
+            assert(coverPathRegex.test(coverId + '.' + extension), 'Backup rejects .' + extension);
+          }
+          assert(!coverPathRegex.test(coverId + '.exe'), 'Backup accepts an invalid extension.');
+
+          assert(html.includes('fetch("/api/notify"'), 'Admin notification relay must be same-origin.');
+          assert(!html.includes('fetch(cfg.relay'), 'Admin access token must not be sent to a configurable URL.');
+          assert(html.includes('readonly aria-label="Endpoint fijo de notificaciones"'), 'Notification endpoint must be read-only.');
+          console.log('Category parity, backup paths and relay security: OK');
+          NODE
