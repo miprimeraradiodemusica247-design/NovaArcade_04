@@ -140,5 +140,7 @@ jobs:
           assert(health.includes('apikey: publishableKey'), 'Health check must use apikey.');
           assert(!health.includes('Authorization:'), 'Health check must not use a publishable key as bearer token.');
           assert(health.includes('AbortSignal.timeout(5000)'), 'Health check must have a bounded timeout.');
+          assert(health.includes('WEBHOOK_1_CATALOGO') && health.includes('WEBHOOK_2_SEGURIDAD'),
+            'Health check must report whether the optional notification integration is configured.');
           console.log('Supabase API-key handling and health check: OK');
           NODE
