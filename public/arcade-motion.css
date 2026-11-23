@@ -281,3 +281,210 @@
     animation: none !important;
   }
 }
+
+
+/* NOVA ARCADE — visual polish layer (CSS only; behavior and application logic untouched). */
+:root {
+  --na-surface-shadow: 0 10px 30px color-mix(in srgb, var(--tx) 6%, transparent);
+  --na-surface-shadow-hover: 0 16px 38px color-mix(in srgb, var(--tx) 11%, transparent);
+  --na-glass: color-mix(in srgb, var(--bg) 86%, transparent);
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse at 12% 0%, color-mix(in srgb, var(--ac) 8%, transparent), transparent 38rem),
+    radial-gradient(ellipse at 92% 18%, color-mix(in srgb, var(--ac2) 9%, transparent), transparent 34rem);
+  background-attachment: fixed;
+}
+
+header {
+  background: var(--na-glass);
+  -webkit-backdrop-filter: blur(16px) saturate(1.12);
+  backdrop-filter: blur(16px) saturate(1.12);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--bd) 70%, transparent);
+}
+
+.logo {
+  filter: drop-shadow(0 2px 10px color-mix(in srgb, var(--ac) 12%, transparent));
+}
+
+.main-search {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 26px color-mix(in srgb, var(--tx) 5%, transparent);
+}
+
+.card,
+.panel,
+.row,
+.bulk-toolbar,
+.global-bulk-toolbar,
+.seo-home-guide article,
+.related-item,
+dialog {
+  box-shadow: var(--na-surface-shadow);
+}
+
+.card {
+  border-color: color-mix(in srgb, var(--bd) 82%, var(--ac) 18%);
+}
+
+.card .b {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--card) 96%, var(--ac) 4%), var(--card) 65%);
+}
+
+.cover {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--ac) 12%, var(--card)), var(--card));
+}
+
+.panel,
+.row,
+.bulk-toolbar,
+.global-bulk-toolbar,
+.seo-home-guide article {
+  border-color: color-mix(in srgb, var(--bd) 88%, var(--ac) 12%);
+}
+
+.btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 15%, rgb(255 255 255 / 13%) 48%, transparent 78%);
+  opacity: 0;
+  transform: translateX(-35%);
+  transition: opacity 220ms ease, transform 420ms cubic-bezier(.2,.75,.25,1);
+}
+
+input,
+select,
+textarea {
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ac) 12%, transparent);
+}
+
+.tabs button,
+.seo-category-links a,
+.related-item {
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--tx) 4%, transparent);
+}
+
+.seo-home-guide article {
+  transition: transform 220ms var(--na-ease), border-color 180ms ease, box-shadow 220ms ease;
+}
+
+.seo-home-guide h2 {
+  letter-spacing: -.02em;
+}
+
+footer {
+  border-top: 1px solid color-mix(in srgb, var(--bd) 70%, transparent);
+}
+
+dialog {
+  box-shadow: 0 24px 80px rgb(0 0 0 / 22%);
+}
+
+dialog::backdrop {
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero,
+  .main-search,
+  .game-section,
+  .player-title,
+  .game-frame-wrap,
+  .panel,
+  .admin-stats .panel,
+  .row,
+  .bulk-toolbar,
+  .global-bulk-toolbar,
+  .seo-home-guide article {
+    animation: nova-soft-arrive 440ms var(--na-ease) both;
+  }
+
+  .game-section:nth-of-type(2) { animation-delay: 35ms; }
+  .game-section:nth-of-type(3) { animation-delay: 70ms; }
+
+  .grid > .card:nth-child(4n + 2) { animation-delay: 35ms; }
+  .grid > .card:nth-child(4n + 3) { animation-delay: 70ms; }
+  .grid > .card:nth-child(4n + 4) { animation-delay: 105ms; }
+
+  .card:hover,
+  .seo-home-guide article:hover {
+    box-shadow: var(--na-surface-shadow-hover);
+  }
+
+  .btn:hover::after {
+    opacity: 1;
+    transform: translateX(35%);
+  }
+
+  .panel,
+  .row,
+  .bulk-toolbar,
+  .global-bulk-toolbar {
+    transition: border-color 180ms ease, box-shadow 220ms ease;
+  }
+
+  @keyframes nova-soft-arrive {
+    from { opacity: 0; transform: translate3d(0, 9px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .seo-home-guide article:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--ac) 55%, var(--bd));
+  }
+
+  .panel:hover,
+  .row:hover {
+    border-color: color-mix(in srgb, var(--ac) 38%, var(--bd));
+  }
+}
+
+@media (max-width: 600px) {
+  body { background-attachment: scroll; }
+  header { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  .card,
+  .panel,
+  .row,
+  .seo-home-guide article { box-shadow: 0 5px 18px color-mix(in srgb, var(--tx) 5%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .main-search,
+  .game-section,
+  .player-title,
+  .game-frame-wrap,
+  .panel,
+  .admin-stats .panel,
+  .row,
+  .bulk-toolbar,
+  .global-bulk-toolbar,
+  .seo-home-guide article {
+    animation: none !important;
+  }
+
+  .btn::after { display: none; }
+  .seo-home-guide article,
+  .panel,
+  .row { transition: none !important; }
+}
