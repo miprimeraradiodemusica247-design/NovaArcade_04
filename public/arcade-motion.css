@@ -435,3 +435,62 @@ body:has(#app > .hero) footer {
 
   body:has(#app > .hero) .seo-home-guide article { transition: none !important; }
 }
+
+
+/* Public discovery upgrades inspired by leading browser-game portals.
+   Kept strictly outside account and administrator views. */
+body:has(#app > .hero) .quick-categories {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  padding: 2px 2px 10px;
+  margin: 12px 0 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+body:has(#app > .hero) .quick-categories button {
+  flex: 0 0 auto;
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  color: var(--tx);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+body:has(#app > .hero) .quick-categories button[aria-pressed="true"] {
+  color: #fff;
+  border-color: var(--ac);
+  background: linear-gradient(110deg, var(--ac), color-mix(in srgb, var(--ac) 58%, var(--ac2)));
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  body:has(#app > .hero) .quick-categories button:hover {
+    border-color: var(--ac);
+    transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 600px) {
+  body:has(#app > .hero) .quick-categories {
+    margin: 8px -2px 16px;
+    padding-bottom: 9px;
+  }
+
+  body:has(#app > .hero) .quick-categories button {
+    min-height: 36px;
+    padding-inline: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(#app > .hero) .quick-categories button {
+    transition: none !important;
+  }
+}
