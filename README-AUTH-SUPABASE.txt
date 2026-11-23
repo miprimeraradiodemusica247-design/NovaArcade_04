@@ -34,12 +34,12 @@ ADMINISTRACIÓN
 - La cuenta administrativa existente está asociada al correo configurado en Supabase Auth; el inicio de sesión real debe probarse desde el navegador.
 
 RECUPERACIÓN DE CONTRASEÑA
-La interfaz actual no incluye un flujo de recuperación propio. Para recuperar el acceso, utilizar el flujo de recuperación de Supabase Auth desde el panel del proyecto 04 o implementar y probar el flujo de recuperación de extremo a extremo antes de depender de él. No borrar ni recrear el usuario administrador: se perdería la correspondencia de UUID con admin_users.
+La interfaz de producción incluye el botón "He olvidado mi contraseña" en #admin. Solicita el enlace mediante Supabase Auth resetPasswordForEmail, procesa el evento PASSWORD_RECOVERY y permite actualizar la contraseña con updateUser. La redirección utiliza el origen de producción. Para completar la validación, comprobar en Supabase Auth > URL Configuration que https://novaarcade04.vercel.app/ está permitido y realizar una prueba real de recepción y cambio de contraseña. No borrar ni recrear el usuario administrador: se perdería la correspondencia de UUID con admin_users.
 
 SEGURIDAD Y OPERACIÓN
 - No habilitar acceso público a admin_users.
 - Mantener RLS y las políticas actuales de public.games y public.admin_users.
-- Revisar la tabla private.playgama_sync_runs antes de activar RLS: actualmente no tiene RLS y requiere una política compatible con la ejecución del cron.
+- La tabla private.playgama_sync_runs tiene RLS activado y no expone políticas a usuarios web; las operaciones internas se ejecutan con privilegios de postgres. Verificar las ejecuciones del cron tras cualquier cambio de permisos.
 - Activar leaked password protection si el plan de Supabase lo permite (Pro o superior).
 - Probar las notificaciones en Discord con una sesión administrativa real; el endpoint /api/health solo confirma que las variables están configuradas, no que Discord haya recibido un mensaje.
 - No introducir credenciales de NOVA ARCADE 03. Este proyecto utiliza su propio Supabase independiente.
