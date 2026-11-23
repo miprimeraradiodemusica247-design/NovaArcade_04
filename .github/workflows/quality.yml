@@ -120,3 +120,21 @@ jobs:
           assert(html.includes('readonly aria-label="Endpoint fijo de notificaciones"'), 'Notification endpoint must be read-only.');
           console.log('Category parity, backup paths and relay security: OK');
           NODE
+
+      - name: Validate Supabase server API-key handling and health check
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          for (const file of ['api/game.js', 'api/category.js', 'api/sitemap.js']) {
+            const source = fs.readFileSync(file, 'utf8');
+            assert(source.includes('apikey: supabaseKey'), file + ' must send the publishable key in apikey.');
+            assert(!/Authorization:\\s*["']Bearer ["']\\s*\\+\\s*supabaseKey/.test(source),
+              file + ' must not send a publishable key as a bearer token.');
+          }
+          const health = fs.readFileSync('api/health.js', 'utf8');
+          assert(health.includes('apikey: publishableKey'), 'Health check must use apikey.');
+          assert(!health.includes('Authorization:'), 'Health check must not use a publishable key as bearer token.');
+          assert(health.includes('AbortSignal.timeout(5000)'), 'Health check must have a bounded timeout.');
+          console.log('Supabase API-key handling and health check: OK');
+          NODE
