@@ -579,8 +579,10 @@ function adminDashboard(){
   return '<section><h2 style="margin-top:0">Centro de control</h2><p class="note">Resumen del catálogo y accesos rápidos.</p><div class="admin-stats"><article class="panel"><span>Total de juegos</span><strong>'+games.length+'</strong></article><article class="panel"><span>Publicados</span><strong class="ok">'+published+'</strong></article><article class="panel"><span>Ocultos</span><strong>'+hidden+'</strong></article><article class="panel"><span>Destacados</span><strong>'+featured+'</strong></article></div><div class="bar"><button class="btn" id="dashboardAdd">＋ Añadir juego</button><button class="btn sec" id="dashboardGames">Gestionar catálogo</button><button class="btn sec" id="dashboardRefresh">↻ Actualizar catálogo</button><button class="btn sec" id="dashboardExport">⇩ Exportar copia JSON</button></div><h2>Categorías con más juegos</h2>'+(rows||'<p class="empty">Todavía no hay juegos.</p>')+'</section>';
 }
 function gamesAdmin(){
+  var normalizedAdminQuery=normalizeSearch(aq);
   var list=games.filter(function(g){
-    var searchOk=!aq||normalizeSearch(g.name+" "+g.desc+" "+g.cat).indexOf(normalizeSearch(aq))!==-1;
+    var searchable=g._search||normalizeSearch(g.name+" "+g.desc+" "+g.cat);
+    var searchOk=!normalizedAdminQuery||searchable.indexOf(normalizedAdminQuery)!==-1;
     var categoryOk=!adminCategory||g.cat===adminCategory;
     var statusOk=adminStatus==="all"||(adminStatus==="published"&&g.pub)||(adminStatus==="hidden"&&!g.pub)||(adminStatus==="featured"&&g.feat);
     return searchOk&&categoryOk&&statusOk;
@@ -944,7 +946,27 @@ function bind(isA){
   if($("#dashboardExport"))$("#dashboardExport").onclick=exportGamesJson;
   if($("#exportGames"))$("#exportGames").onclick=exportGamesJson;
   if($("#refreshCatalog"))$("#refreshCatalog").onclick=async function(){var b=$("#refreshCatalog");b.disabled=true;try{await loadPersistentGames();selectedGameIds=[];render();}catch(error){alert("No se pudo actualizar el catálogo: "+error.message);}finally{if($("#refreshCatalog"))$("#refreshCatalog").disabled=false;}};
-  if($("#as"))$("#as").oninput=function(e){aq=e.target.value;adminPage=1;var p=e.target.selectionStart;render();var s=$("#as");if(s){s.focus();s.setSelectionRange(p,p)}};
+  if($("#as"))$("#as").oninput=function(e){
+    aq=e.target.value;
+    adminPage=1;
+    if(searchTimer!==null)clearTimeout(searchTimer);
+    searchTimer=setTimeout(function(){
+      searchTimer=null;
+      var current=$("#as");
+      if(!current)return;
+      var keepFocus=document.activeElement===current;
+      var start=current.selectionStart;
+      var end=current.selectionEnd;
+      render();
+      if(keepFocus){
+        var next=$("#as");
+        if(next){
+          next.focus();
+          next.setSelectionRange(start,end);
+        }
+      }
+    },180);
+  };
   if($("#adminCategory"))$("#adminCategory").onchange=function(e){adminCategory=e.target.value;adminPage=1;render()};
   if($("#adminStatus"))$("#adminStatus").onchange=function(e){adminStatus=e.target.value;adminPage=1;render()};
   if($("#adminSort"))$("#adminSort").onchange=function(e){adminSort=e.target.value;adminPage=1;render()};
