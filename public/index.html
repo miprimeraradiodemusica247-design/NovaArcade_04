@@ -194,6 +194,8 @@ var adminSession=null;
 var adminUser=null;
 var adminChecked=false;
 var authBusy=false;
+var passwordRecoveryMode=false;
+var authNotice="";
 var supabaseClient=window.supabase.createClient(
   "https://eyntsvwjesmxzfkuxukj.supabase.co",
   "sb_publishable_qIBYHgmaPKpWPD2JVl5h7Q_EwpNr9b6",
@@ -362,12 +364,21 @@ function bindPlayer(){
 
 /* ---------- Admin ---------- */
 function loginView(){
+  var notice=authNotice;authNotice="";
   return '<div class="panel" style="margin:30px auto"><h2 style="margin-top:0">Acceso administrador</h2>'+ 
   '<label>Correo electrónico</label><input type="email" id="authEmail" autocomplete="username" maxlength="254" required>'+ 
   '<label>Contraseña</label><input type="password" id="authPassword" autocomplete="current-password" minlength="12" required>'+ 
   '<p id="msg" class="er" role="status" aria-live="polite" style="min-height:20px"></p>'+ 
-  '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="authLogin">Iniciar sesión</button><button class="btn sec" id="authSignup">Crear cuenta</button></div>'+ 
+  '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="authLogin">Iniciar sesión</button><button class="btn sec" id="authSignup">Crear cuenta</button><button class="btn sec" id="authForgot" type="button">He olvidado mi contraseña</button></div>'+ 
   '<p class="note">Acceso protegido por Supabase Auth. Crear una cuenta no concede permisos de administrador: el usuario debe estar autorizado en el registro protegido de administradores.</p></div>';
+}
+function passwordRecoveryView(){
+  return '<div class="panel" style="margin:30px auto"><h2 style="margin-top:0">Restablecer contraseña</h2>'+
+  '<p class="note">Elige una contraseña nueva de al menos 12 caracteres.</p>'+
+  '<label>Nueva contraseña</label><input type="password" id="authNewPassword" autocomplete="new-password" minlength="12" maxlength="128" required>'+
+  '<label>Repite la nueva contraseña</label><input type="password" id="authConfirmPassword" autocomplete="new-password" minlength="12" maxlength="128" required>'+
+  '<p id="msg" class="er" role="status" aria-live="polite" style="min-height:20px"></p>'+
+  '<button class="btn" id="authUpdatePassword" type="button">Guardar nueva contraseña</button></div>';
 }
 function authLoadingView(){
   return '<div class="panel" style="margin:30px auto"><p>Verificando sesión y permisos…</p></div>';
@@ -823,8 +834,8 @@ function render(){
   var isA=location.hash==="#admin",isPlay=location.hash.indexOf("#play/")===0;
   if(isPlay){$("#nav").innerHTML='<a class="btn sec sm" href="#">Inicio</a>';$("#app").innerHTML=gamePlayerView();bindPlayer();return;}
   $("#nav").innerHTML=isA&&admin?'<button class="btn sec sm" id="ver">Ver web</button> <button class="btn sec sm" id="out">Cerrar sesión</button>':isA?'':'<a class="btn sec sm" style="text-decoration:none" href="#admin">Admin</a>';
-  $("#app").innerHTML=isA?(!adminChecked?authLoadingView():(admin?adminView():loginView())):(catalogLoaded?pubView():catalogLoadingView());
-  if(!isA || adminChecked) bind(isA);
+  $("#app").innerHTML=isA?(passwordRecoveryMode?passwordRecoveryView():(!adminChecked?authLoadingView():(admin?adminView():loginView()))):(catalogLoaded?pubView():catalogLoadingView());
+  if(!isA || adminChecked || passwordRecoveryMode) bind(isA);
 }
 function bind(isA){
   if(!isA){
@@ -859,6 +870,41 @@ function bind(isA){
     document.querySelectorAll("[data-fav]").forEach(function(b){b.onclick=function(){toggleFavorite(b.dataset.fav);};});return;
   }
   if(!admin){
+    if(passwordRecoveryMode){
+      $("#authUpdatePassword").onclick=async function(){
+        if(authBusy)return;
+        var password=$("#authNewPassword").value;
+        var confirmation=$("#authConfirmPassword").value;
+        var message=$("#msg");
+        if(password.length<12){message.textContent="La contraseña debe tener al menos 12 caracteres.";return;}
+        if(password.length>128){message.textContent="La contraseña no puede superar los 128 caracteres.";return;}
+        if(password!==confirmation){message.textContent="Las contraseñas no coinciden.";return;}
+        authBusy=true;$("#authUpdatePassword").disabled=true;message.textContent="Actualizando contraseña…";
+        try{
+          var updateResult=await supabaseClient.auth.updateUser({password:password});
+          if(updateResult.error)throw updateResult.error;
+          await supabaseClient.auth.signOut();
+          passwordRecoveryMode=false;adminSession=null;adminUser=null;admin=false;adminChecked=true;
+          authNotice="Contraseña actualizada correctamente. Ya puedes iniciar sesión.";
+          render();
+        }catch(error){message.textContent=error&&error.message?error.message:"No se pudo actualizar la contraseña.";} 
+        finally{authBusy=false;if($("#authUpdatePassword"))$("#authUpdatePassword").disabled=false;}
+      };
+      return;
+    }
+    $("#authForgot").onclick=async function(){
+      if(authBusy)return;
+      var email=$("#authEmail").value.trim().toLowerCase();
+      var message=$("#msg");
+      if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){message.textContent="Introduce tu correo electrónico para enviarte el enlace.";return;}
+      authBusy=true;$("#authForgot").disabled=true;message.textContent="Solicitando enlace de recuperación…";
+      try{
+        var recoveryResult=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/"});
+        if(recoveryResult.error)throw recoveryResult.error;
+        message.textContent="Si la cuenta existe, recibirás un correo con el enlace para cambiar la contraseña. Revisa también spam.";
+      }catch(error){message.textContent=error&&error.message?error.message:"No se pudo solicitar el restablecimiento.";} 
+      finally{authBusy=false;if($("#authForgot"))$("#authForgot").disabled=false;}
+    };
     async function authenticate(createAccount){
       if(authBusy)return;
       var email=$("#authEmail").value.trim().toLowerCase();
@@ -949,6 +995,12 @@ window.addEventListener("hashchange",function(){
 });
 supabaseClient.auth.getSession().then(function(result){refreshAdminState(result.data.session)}).catch(function(){catalogLoaded=true;adminChecked=true;var app=document.getElementById("app");if(app)app.setAttribute("aria-busy","false");render()});
 supabaseClient.auth.onAuthStateChange(function(event,session){
+  if(event==="PASSWORD_RECOVERY"){
+    passwordRecoveryMode=true;
+    if(location.hash!=="#admin")location.hash="#admin";
+    render();
+    return;
+  }
   if(event==="TOKEN_REFRESHED" && session && session.user && adminSession && adminSession.user && session.user.id===adminSession.user.id){
     adminSession=session;
     return;
