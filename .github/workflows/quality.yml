@@ -130,11 +130,11 @@ jobs:
             const source = fs.readFileSync(file, 'utf8');
             assert(source.includes('apikey: supabaseKey'), file + ' must send the publishable key in apikey.');
             assert(!/Authorization:\s*["']Bearer ["']\s*\+\s*supabaseKey/.test(source),
-          if (file === 'api/game.js') {
-            assert(fs.readFileSync('public/index.html', 'utf8').includes('@supabase/supabase-js@2.119.2'),
-              'Browser SDK must include the fix that omits publishable keys from Authorization Bearer.');
-          }
               file + ' must not send a publishable key as a bearer token.');
+            if (file === 'api/game.js') {
+              assert(fs.readFileSync('public/index.html', 'utf8').includes('@supabase/supabase-js@2.119.2'),
+                'Browser SDK must include the fix that omits publishable keys from Authorization Bearer.');
+            }
           }
           const health = fs.readFileSync('api/health.js', 'utf8');
           assert(health.includes('apikey: publishableKey'), 'Health check must use apikey.');
