@@ -134,10 +134,16 @@ module.exports = async function handler(req, res) {
         body: JSON.stringify({ type: "magiclink", email: email })
       }
     );
-    const tokenHash = generated && generated.properties && generated.properties.hashed_token
-      ? generated.properties.hashed_token
-      : generated && generated.data && generated.data.properties
-        ? generated.data.properties.hashed_token : null;
+    // The GoTrue REST endpoint returns hashed_token at the top level.
+    // SDK-style wrappers may nest it under data.properties or properties.
+    const tokenHash = generated && typeof generated.hashed_token === "string"
+      ? generated.hashed_token
+      : generated && generated.properties && typeof generated.properties.hashed_token === "string"
+        ? generated.properties.hashed_token
+        : generated && generated.data && generated.data.properties &&
+          typeof generated.data.properties.hashed_token === "string"
+          ? generated.data.properties.hashed_token
+          : null;
     if (!tokenHash) {
       return json(res, 502, { success: false, error: "Supabase no pudo crear la sesión de administrador." });
     }
