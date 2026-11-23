@@ -129,7 +129,7 @@ jobs:
           for (const file of ['api/game.js', 'api/category.js', 'api/sitemap.js']) {
             const source = fs.readFileSync(file, 'utf8');
             assert(source.includes('apikey: supabaseKey'), file + ' must send the publishable key in apikey.');
-            assert(!/Authorization:\\s*["']Bearer ["']\\s*\\+\\s*supabaseKey/.test(source),
+            assert(!/Authorization:\s*["']Bearer ["']\s*\+\s*supabaseKey/.test(source),
               file + ' must not send a publishable key as a bearer token.');
           }
           const health = fs.readFileSync('api/health.js', 'utf8');
