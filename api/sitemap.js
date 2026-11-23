@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
       }).toString();
 
       const response = await fetch(endpoint, {
-        headers: { apikey: supabaseKey, Authorization: "Bearer " + supabaseKey, Accept: "application/json" },
+        headers: { apikey: supabaseKey, Accept: "application/json" },
         signal: AbortSignal.timeout(7000)
       });
       if (!response.ok) {
