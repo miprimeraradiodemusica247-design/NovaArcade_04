@@ -381,32 +381,94 @@ function accountView(){
 }
 async function accountAuthenticate(){
   if(authBusy)return;
-  var email=$("#accountEmail").value.trim().toLowerCase();
-  var password=$("#accountPassword").value;
+  var emailInput=$("#accountEmail");
+  var passwordInput=$("#accountPassword");
+  var submit=$("#accountSubmit");
   var message=$("#accountMessage");
+  if(!emailInput||!passwordInput||!submit||!message)return;
+
+  var email=emailInput.value.trim().toLowerCase();
+  var password=passwordInput.value;
   var creating=accountMode==="signup";
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message.textContent="Introduce un correo electrónico válido.";return;}
-  if(password.length<12||password.length>128){message.textContent="La contraseña debe tener entre 12 y 128 caracteres.";return;}
-  if(creating&&password!==$("#accountConfirmPassword").value){message.textContent="Las contraseñas no coinciden.";return;}
+
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    message.textContent="Introduce un correo electrónico válido.";
+    emailInput.focus();
+    return;
+  }
+  if(password.length<12||password.length>128){
+    message.textContent="La contraseña debe tener entre 12 y 128 caracteres.";
+    passwordInput.focus();
+    return;
+  }
+  if(creating&&password!==$("#accountConfirmPassword").value){
+    message.textContent="Las contraseñas no coinciden.";
+    $("#accountConfirmPassword").focus();
+    return;
+  }
+
   authBusy=true;
-  $("#accountSubmit").disabled=true;
+  submit.disabled=true;
+  emailInput.disabled=true;
+  passwordInput.disabled=true;
+  var confirmInput=$("#accountConfirmPassword");
+  if(confirmInput)confirmInput.disabled=true;
   message.textContent=creating?"Creando tu cuenta…":"Iniciando sesión…";
+
   try{
     var result=creating
-      ?await supabaseClient.auth.signUp({email:email,password:password,options:{emailRedirectTo:window.location.origin+"/"}})
+      ?await supabaseClient.auth.signUp({
+          email:email,
+          password:password,
+          options:{emailRedirectTo:window.location.origin+"/"}
+        })
       :await supabaseClient.auth.signInWithPassword({email:email,password:password});
+
     if(result.error)throw result.error;
-    if(creating&&!result.data.session){
-      message.textContent="Tu cuenta se ha registrado. Confirma tu correo desde el enlace que te hemos enviado y después vuelve para iniciar sesión.";
-      return;
+
+    if(creating){
+      var identities=result.data&&result.data.user&&Array.isArray(result.data.user.identities)
+        ?result.data.user.identities:[];
+      if(!result.data.session&&identities.length===0){
+        message.textContent="No se ha creado una cuenta nueva con ese correo. Si ya tienes una cuenta, pulsa «Ya tengo una cuenta» para iniciar sesión. Si quieres registrarte de nuevo, utiliza otro correo.";
+        return;
+      }
+      if(!result.data.session){
+        message.textContent="Solicitud recibida. Si el correo es válido y todavía no está registrado, revisa tu bandeja de entrada y spam para confirmar la cuenta.";
+        return;
+      }
     }
-    if(!result.data.session)throw new Error("No se pudo iniciar la sesión. Confirma primero tu correo electrónico.");
+
+    if(!result.data.session){
+      throw new Error("No se pudo iniciar sesión. Comprueba tus datos y confirma el correo si todavía está pendiente.");
+    }
+
     await refreshAdminState(result.data.session);
   }catch(error){
-    message.textContent=error&&error.message?error.message:"No se pudo completar el registro.";
+    var errorCode=String(error&&error.code||"").toLowerCase();
+    var errorMessage=String(error&&error.message||"").toLowerCase();
+    var duplicateEmail=errorCode==="23505"||
+      errorMessage.includes("duplicate key")||
+      errorMessage.includes("users_email_partial_key")||
+      errorMessage.includes("already registered")||
+      errorMessage.includes("already exists");
+    if(creating&&duplicateEmail){
+      message.textContent="Ese correo ya está asociado a una cuenta. Pulsa «Ya tengo una cuenta» para iniciar sesión, o utiliza otro correo para registrarte.";
+    }else if(creating&&(errorMessage.includes("database error saving new user")||errorCode==="unexpected_failure")){
+      message.textContent="Supabase no ha podido guardar el registro. Comprueba que el correo no esté ya registrado e inténtalo una sola vez. Si continúa, revisaremos el servicio de autenticación.";
+    }else{
+      message.textContent=error&&error.message?error.message:"No se pudo completar la operación.";
+    }
   }finally{
     authBusy=false;
-    if($("#accountSubmit"))$("#accountSubmit").disabled=false;
+    var currentSubmit=$("#accountSubmit");
+    var currentEmail=$("#accountEmail");
+    var currentPassword=$("#accountPassword");
+    var currentConfirm=$("#accountConfirmPassword");
+    if(currentSubmit)currentSubmit.disabled=false;
+    if(currentEmail)currentEmail.disabled=false;
+    if(currentPassword)currentPassword.disabled=false;
+    if(currentConfirm)currentConfirm.disabled=false;
   }
 }
 function loginView(){
