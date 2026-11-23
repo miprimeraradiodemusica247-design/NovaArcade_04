@@ -368,7 +368,7 @@ function loginView(){
   return '<div class="panel" style="margin:30px auto"><h2 style="margin-top:0">Acceso administrador</h2>'+ 
   '<label>Correo electrónico</label><input type="email" id="authEmail" autocomplete="username" maxlength="254" required>'+ 
   '<label>Contraseña</label><input type="password" id="authPassword" autocomplete="current-password" minlength="12" required>'+ 
-  '<p id="msg" class="er" role="status" aria-live="polite" style="min-height:20px"></p>'+ 
+  '<p id="msg" class="er" role="status" aria-live="polite" style="min-height:20px">'+esc(notice)+'</p>'+ 
   '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="authLogin">Iniciar sesión</button><button class="btn sec" id="authSignup">Crear cuenta</button><button class="btn sec" id="authForgot" type="button">He olvidado mi contraseña</button></div>'+ 
   '<p class="note">Acceso protegido por Supabase Auth. Crear una cuenta no concede permisos de administrador: el usuario debe estar autorizado en el registro protegido de administradores.</p></div>';
 }
@@ -896,7 +896,7 @@ function bind(isA){
       if(authBusy)return;
       var email=$("#authEmail").value.trim().toLowerCase();
       var message=$("#msg");
-      if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){message.textContent="Introduce tu correo electrónico para enviarte el enlace.";return;}
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message.textContent="Introduce tu correo electrónico para enviarte el enlace.";return;}
       authBusy=true;$("#authForgot").disabled=true;message.textContent="Solicitando enlace de recuperación…";
       try{
         var recoveryResult=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+"/"});
