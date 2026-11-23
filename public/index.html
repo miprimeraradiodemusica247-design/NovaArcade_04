@@ -200,7 +200,7 @@ var accountMode="signup";
 var supabaseClient=window.supabase.createClient(
   "https://eyntsvwjesmxzfkuxukj.supabase.co",
   "sb_publishable_qIBYHgmaPKpWPD2JVl5h7Q_EwpNr9b6",
-  {auth:{experimental:{passkey:true},persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
+  {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
 );
 var logs=ld("na_log",[]);
 var admin=false,tab="resumen",q="",fc="",aq="",sortMode="popular",onlyFavorites=false;
@@ -473,10 +473,14 @@ async function accountAuthenticate(){
 }
 function loginView(){
   var notice=authNotice;authNotice="";
-  return '<div class="panel" style="margin:30px auto;text-align:center"><h2 style="margin-top:0">Acceso administrador</h2>'+
-  '<p class="note">Acceso exclusivo mediante passkey. Confirma tu identidad con Windows Hello, PIN, huella o tu gestor de passkeys.</p>'+
+  return '<div class="panel" style="margin:30px auto;text-align:center;max-width:420px"><h2 style="margin-top:0">Acceso administrador</h2>'+
+  '<p class="note">Introduce tu usuario y PIN de administrador.</p>'+
+  '<label for="adminUsername" style="display:block;text-align:left">Usuario</label>'+
+  '<input id="adminUsername" name="username" type="text" autocomplete="username" maxlength="32" value="NovaAdmin04" spellcheck="false" style="width:100%;margin:8px 0 14px">'+
+  '<label for="adminPin" style="display:block;text-align:left">PIN de 4 dígitos</label>'+
+  '<input id="adminPin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="current-password" style="width:100%;margin:8px 0 14px">'+
   '<p id="msg" class="er" role="status" aria-live="polite" style="min-height:20px">'+esc(notice)+'</p>'+
-  '<button class="btn" id="authPasskey" type="button">Entrar con passkey</button></div>';
+  '<button class="btn" id="adminPinLogin" type="button">Entrar</button></div>';
 }
 function passwordRecoveryView(){
   return '<div class="panel" style="margin:30px auto"><h2 style="margin-top:0">Restablecer contraseña</h2>'+
@@ -948,7 +952,7 @@ function render(){
     bind(false);
     return;
   }
-  $("#nav").innerHTML=isA&&admin?'<button class="btn sec sm" id="ver">Ver web</button> <button class="btn sec sm" id="passkeyRegister">Configurar passkey</button> <button class="btn sec sm" id="out">Cerrar sesión</button>':isA?'':'<a class="btn sec sm" style="text-decoration:none" href="#cuenta">Mi cuenta</a> <a class="btn sec sm" style="text-decoration:none" href="#admin">Admin</a>';
+  $("#nav").innerHTML=isA&&admin?'<button class="btn sec sm" id="ver">Ver web</button> <button class="btn sec sm" id="out">Cerrar sesión</button>':isA?'':'<a class="btn sec sm" style="text-decoration:none" href="#cuenta">Mi cuenta</a> <a class="btn sec sm" style="text-decoration:none" href="#admin">Admin</a>';
   $("#app").innerHTML=isA?(passwordRecoveryMode?passwordRecoveryView():(!adminChecked?authLoadingView():(admin?adminView():loginView()))):(catalogLoaded?pubView():catalogLoadingView());
   if(!isA || adminChecked || passwordRecoveryMode) bind(isA);
 }
@@ -1028,54 +1032,57 @@ function bind(isA){
       };
       return;
     }
-    if($("#authPasskey"))$("#authPasskey").onclick=async function(){
+    if($("#adminPinLogin"))$("#adminPinLogin").onclick=async function(){
       if(authBusy)return;
-      var button=$("#authPasskey"),message=$("#msg");
-      if(!window.isSecureContext||!navigator.credentials||!window.PublicKeyCredential){message.textContent="Este navegador no admite passkeys aquí. Abre la web mediante HTTPS y prueba con un navegador compatible.";return;}
-      if(typeof supabaseClient.auth.signInWithPasskey!=="function"){message.textContent="La función passkey no está disponible. Comprueba la configuración Passkey de Supabase.";return;}
-      authBusy=true;button.disabled=true;button.textContent="Esperando autenticación…";
-      message.textContent="Confirma tu identidad con Windows Hello, PIN, huella o tu gestor de passkeys.";
+      var button=$("#adminPinLogin"),message=$("#msg");
+      var username=$("#adminUsername")?$("#adminUsername").value.trim():"";
+      var pin=$("#adminPin")?$("#adminPin").value:"";
+      if(username!=="NovaAdmin04"){message.textContent="Usuario o PIN incorrectos.";return;}
+      if(!/^\d{4}$/.test(pin)){message.textContent="El PIN debe contener exactamente 4 dígitos.";return;}
+      authBusy=true;button.disabled=true;button.textContent="Verificando…";
+      if($("#adminUsername"))$("#adminUsername").disabled=true;
+      if($("#adminPin"))$("#adminPin").disabled=true;
+      message.textContent="Comprobando acceso seguro…";
       try{
-        var result=await supabaseClient.auth.signInWithPasskey();
-        if(result.error)throw result.error;
-        if(!result.data||!result.data.session)throw new Error("La autenticación no devolvió una sesión válida.");
-        await refreshAdminState(result.data.session);
+        var response=await fetch("/api/admin-login",{
+          method:"POST",
+          headers:{"Content-Type":"application/json","Accept":"application/json"},
+          credentials:"same-origin",
+          cache:"no-store",
+          body:JSON.stringify({username:username,pin:pin})
+        });
+        var payload=await response.json().catch(function(){return {};});
+        if(!response.ok||!payload.session||!payload.session.access_token||!payload.session.refresh_token){
+          throw new Error(payload.error||"No se pudo validar el acceso.");
+        }
+        var sessionResult=await supabaseClient.auth.setSession({
+          access_token:payload.session.access_token,
+          refresh_token:payload.session.refresh_token
+        });
+        if(sessionResult.error)throw sessionResult.error;
+        await refreshAdminState(sessionResult.data.session);
         if(!admin){
           await supabaseClient.auth.signOut();
           adminSession=null;adminUser=null;admin=false;adminChecked=true;render();
-          if($("#msg"))$("#msg").textContent="Esta cuenta no tiene permisos de administrador.";
-          return;
+          throw new Error("La cuenta no tiene permisos de administrador.");
         }
         notify("login",{name:"Panel"});
       }catch(error){
-        console.error("Error iniciando sesión con passkey:",error);
-        if($("#msg"))$("#msg").textContent=error&&error.message?error.message:"No se pudo iniciar sesión con passkey.";
+        console.error("Error iniciando sesión de administrador:",error);
+        if($("#msg"))$("#msg").textContent=error&&error.message?error.message:"No se pudo iniciar sesión.";
       }finally{
         authBusy=false;
-        if($("#authPasskey")){$("#authPasskey").disabled=false;$("#authPasskey").textContent="Entrar con passkey";}
+        if($("#adminPinLogin")){$("#adminPinLogin").disabled=false;$("#adminPinLogin").textContent="Entrar";}
+        if($("#adminUsername"))$("#adminUsername").disabled=false;
+        if($("#adminPin")){$("#adminPin").disabled=false;$("#adminPin").value="";}
       }
     };
+    if($("#adminPin"))$("#adminPin").addEventListener("keydown",function(event){
+      if(event.key==="Enter"&&$("#adminPinLogin"))$("#adminPinLogin").click();
+    });
     return;
   }
   $("#ver").onclick=function(){location.hash=""};
-  if($("#passkeyRegister"))$("#passkeyRegister").onclick=async function(){
-    if(authBusy||!admin||!adminUser||!adminSession)return;
-    var button=$("#passkeyRegister");
-    authBusy=true;button.disabled=true;button.textContent="Configurando passkey…";
-    try{
-      if(!window.isSecureContext||!navigator.credentials||!window.PublicKeyCredential)throw new Error("Este navegador no admite passkeys en este contexto seguro. Abre NOVA ARCADE desde HTTPS y utiliza un navegador compatible.");
-      if(typeof supabaseClient.auth.registerPasskey!=="function")throw new Error("La función passkey no está disponible. Comprueba que la autenticación Passkey esté activada en Supabase.");
-      var result=await supabaseClient.auth.registerPasskey();
-      if(result.error)throw result.error;
-      alert("Passkey configurada correctamente. La próxima vez podrás entrar desde «Entrar con passkey».");
-    }catch(error){
-      console.error("Error registrando passkey:",error);
-      alert(error&&error.message?error.message:"No se pudo configurar la passkey. Inténtalo de nuevo.");
-    }finally{
-      authBusy=false;
-      if($("#passkeyRegister")){$("#passkeyRegister").disabled=false;$("#passkeyRegister").textContent="Configurar passkey";}
-    }
-  };
   $("#out").onclick=async function(){await supabaseClient.auth.signOut();adminSession=null;adminUser=null;admin=false;adminChecked=true;location.hash="";render()};
   document.querySelectorAll(".tabs button").forEach(function(b){b.onclick=function(){tab=b.dataset.t;render()}});
   document.querySelectorAll("[data-a]").forEach(function(b){b.onclick=function(){act(b.dataset.a,+b.dataset.i)}});
