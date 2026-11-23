@@ -32,7 +32,7 @@ module.exports = async function handler(req, res) {
       endpoint.search = new URLSearchParams({
         select: "id,updated_at,category",
         is_published: "eq.true",
-        order: "updated_at.desc",
+        order: "updated_at.desc,id.asc",
         limit: String(pageSize),
         offset: String(offset)
       }).toString();
