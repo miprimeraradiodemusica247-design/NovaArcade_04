@@ -100,7 +100,7 @@ module.exports = async function handler(req, res) {
           category: "eq." + category,
           id: "neq." + id,
           is_published: "eq.true",
-          order: "updated_at.desc",
+          order: "updated_at.desc,id.asc",
           limit: "4"
         }).toString();
         const relatedResponse = await fetch(relatedEndpoint, {
