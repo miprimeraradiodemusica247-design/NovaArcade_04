@@ -106,9 +106,12 @@ jobs:
           assert(!categorySource.includes('}).join("\\\\n");'), 'SEO cards must not render literal backslash-n text.');
 
           const backupLine = html.split('\n').find((line) => line.includes('var safeCoverPath='));
-          const backupPattern = backupLine && backupLine.match(/&&\/(.*?)\/i\.test/);
-          assert(backupPattern, 'Backup cover path validator not found.');
-          const coverPathRegex = new RegExp(backupPattern[1], 'i');
+          assert(backupLine, 'Backup cover path validator not found.');
+          assert(
+            backupLine.includes('&&/^[0-9a-f-]{36}\\\\.(?:jpg|png|webp)$/i.test'),
+            'Backup cover path must restrict UUID filenames to jpg, png or webp.'
+          );
+          const coverPathRegex = /^[0-9a-f-]{36}\.(?:jpg|png|webp)$/i;
           const coverId = '123e4567-e89b-12d3-a456-426614174000';
           for (const extension of ['jpg', 'png', 'webp']) {
             assert(coverPathRegex.test(coverId + '.' + extension), 'Backup rejects .' + extension);
