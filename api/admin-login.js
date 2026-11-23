@@ -77,6 +77,7 @@ module.exports = async function handler(req, res) {
     .update(getClientIp(req))
     .digest("hex");
 
+  let stage = "rate_limit";
   try {
     const validUsername = username === "NovaAdmin04";
     const pinMatches = /^\d{4}$/.test(pin) &&
@@ -107,6 +108,7 @@ module.exports = async function handler(req, res) {
       return json(res, 401, { success: false, error: "Usuario o PIN incorrectos." });
     }
 
+    stage = "admin_membership";
     const memberships = await supabaseFetch(
       baseUrl,
       "/rest/v1/admin_users?select=user_id&limit=2",
@@ -116,6 +118,7 @@ module.exports = async function handler(req, res) {
       return json(res, 503, { success: false, error: "La cuenta administradora no está correctamente vinculada." });
     }
 
+    stage = "admin_user_lookup";
     const user = await supabaseFetch(
       baseUrl,
       "/auth/v1/admin/users/" + encodeURIComponent(memberships[0].user_id),
@@ -128,6 +131,7 @@ module.exports = async function handler(req, res) {
       return json(res, 503, { success: false, error: "No se pudo identificar la cuenta administradora." });
     }
 
+    stage = "generate_magic_link";
     const generated = await supabaseFetch(
       baseUrl,
       "/auth/v1/admin/generate_link",
@@ -146,6 +150,7 @@ module.exports = async function handler(req, res) {
       return json(res, 502, { success: false, error: "Supabase no pudo crear la sesión de administrador." });
     }
 
+    stage = "verify_magic_link";
     const session = await supabaseFetch(
       baseUrl,
       "/auth/v1/verify",
@@ -170,7 +175,7 @@ module.exports = async function handler(req, res) {
       }
     });
   } catch (error) {
-    console.error("Admin login failed:", error && error.status ? "Supabase HTTP " + error.status : "internal error");
+    console.error("Admin login failed at " + stage + ":", error && error.status ? "Supabase HTTP " + error.status : "internal error");
     return json(res, 503, { success: false, error: "No se pudo completar el inicio de sesión. Inténtalo de nuevo." });
   }
 };
