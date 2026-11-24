@@ -3,7 +3,7 @@
   "appName": "NOVA ARCADE",
   "webDir": "public",
   "server": {
-    "url": "https://novaarcade04.vercel.app",
+    "url": "https://novaarcade04.vercel.app/?nova_android=1&app_version=1.0.4",
     "cleartext": false,
     "allowNavigation": [
       "novaarcade04.vercel.app"
