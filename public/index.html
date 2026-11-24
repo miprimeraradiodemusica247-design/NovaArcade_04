@@ -1317,7 +1317,7 @@ if ("serviceWorker" in navigator) {
   "use strict";
 
   var params = new URLSearchParams(window.location.search);
-  var isNativeApp = params.get("nova_android") === "1" || /(?:; wv\\)|Capacitor)/i.test(navigator.userAgent);
+  var isNativeApp = params.get("nova_android") === "1" || /(?:; wv\)|Capacitor)/i.test(navigator.userAgent);
   if (!isNativeApp) return;
 
   var currentVersion = params.get("app_version") || "1.0.4";
