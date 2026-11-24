@@ -87,16 +87,16 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
       - name: Validate tag matches app version
         env:
           APP_VERSION: ${{ github.ref_name }}
         run: |
           EXPECTED="v$(node -p "require('./package.json').version")"
           test "$APP_VERSION" = "$EXPECTED" || (echo "::error::La etiqueta debe ser $EXPECTED" && exit 1)
-      - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: 24
       - name: Set up Java
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
         with:
@@ -148,8 +148,8 @@ jobs:
               }
           """
           if "signingConfigs {" not in content:
-              content = content.replace("buildTypes {", signing + "\\n            buildTypes {", 1)
-          content, n_release = re.subn(r"(buildTypes\s*\{\s*release\s*\{)", lambda match: match.group(1) + "\\n            signingConfig signingConfigs.release", content, count=1)
+              content = content.replace("buildTypes {", signing + "\n            buildTypes {", 1)
+          content, n_release = re.subn(r"(buildTypes\s*\{\s*release\s*\{)", lambda match: match.group(1) + "\n            signingConfig signingConfigs.release", content, count=1)
           if n_release != 1:
               raise SystemExit("No se encontró buildTypes.release para configurar la firma.")
           path.write_text(content)
