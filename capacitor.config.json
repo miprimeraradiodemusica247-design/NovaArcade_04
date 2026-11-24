@@ -1,0 +1,12 @@
+{
+  "appId": "com.novaarcade.arcade",
+  "appName": "NOVA ARCADE",
+  "webDir": "public",
+  "server": {
+    "url": "https://novaarcade04.vercel.app",
+    "cleartext": false,
+    "allowNavigation": [
+      "novaarcade04.vercel.app"
+    ]
+  }
+}
