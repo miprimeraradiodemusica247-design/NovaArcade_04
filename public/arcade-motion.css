@@ -822,3 +822,55 @@ body:has(#app > .hero) .seo-home-guide article {
 @media (prefers-reduced-motion: reduce) {
   body:has(#app > .hero) .cover img { transition: none !important; }
 }
+
+
+/* Accessible volume control in the public game player. */
+body:has(#app > .player-title) .game-volume-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 6px 11px;
+  border: 1px solid color-mix(in srgb, var(--bd) 72%, #8b5cf6 28%);
+  border-radius: 12px;
+  color: var(--tx);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+body:has(#app > .player-title) .game-volume-control input[type="range"] {
+  width: clamp(88px, 13vw, 150px);
+  accent-color: var(--ac);
+  cursor: pointer;
+}
+
+body:has(#app > .player-title) .game-volume-control input[type="range"]:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+body:has(#app > .player-title) .game-volume-control output {
+  min-width: 38px;
+  color: var(--tx);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+body:has(#app > .player-title) #gameVolumeStatus {
+  margin: 8px 2px 0;
+  color: var(--muted, #aab4ce);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  body:has(#app > .player-title) .game-volume-control {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+  body:has(#app > .player-title) .game-volume-control input[type="range"] {
+    flex: 1;
+    max-width: 180px;
+  }
+}
