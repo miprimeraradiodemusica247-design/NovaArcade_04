@@ -1,25 +1,28 @@
-name: Build NOVA ARCADE Android APK
+name: Build NOVA ARCADE Android
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+    tags:
+      - "v*"
     paths:
       - "package.json"
       - "capacitor.config.json"
       - ".github/workflows/android-apk.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: nova-arcade-android-apk
+  group: nova-arcade-android-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-apk:
-    name: Build installable Android APK
+  build-debug:
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    name: Build test APK
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -27,48 +30,147 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 24
-
       - name: Set up Java
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
         with:
           distribution: temurin
           java-version: "21"
-
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:
           packages: ''
-
       - name: Install Android SDK packages
         run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "platform-tools"
-
       - name: Install Capacitor dependencies
         run: npm install --no-audit --no-fund
-
       - name: Generate Android project
         run: npx cap add android
-
       - name: Synchronize Capacitor project
         run: npx cap sync android
-
       - name: Build debug APK
         working-directory: android
         run: ./gradlew --no-daemon --stacktrace assembleDebug
-
       - name: Generate APK checksum
         run: sha256sum android/app/build/outputs/apk/debug/app-debug.apk > android/app/build/outputs/apk/debug/app-debug.apk.sha256
-
-      - name: Upload installable APK
+      - name: Upload debug APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: NOVA-ARCADE-Android-APK
+          name: NOVA-ARCADE-Android-DEBUG
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
             android/app/build/outputs/apk/debug/app-debug.apk.sha256
           if-no-files-found: error
           retention-days: 14
+
+  publish-release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    name: Build and publish signed Android update
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Validate release signing secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          test -n "$KEYSTORE_BASE64" || (echo "::error::Falta el secreto KEYSTORE_BASE64" && exit 1)
+          test -n "$KEYSTORE_PASSWORD" || (echo "::error::Falta el secreto KEYSTORE_PASSWORD" && exit 1)
+          test -n "$KEY_ALIAS" || (echo "::error::Falta el secreto KEY_ALIAS" && exit 1)
+          test -n "$KEY_PASSWORD" || (echo "::error::Falta el secreto KEY_PASSWORD" && exit 1)
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Validate tag matches app version
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+        run: |
+          EXPECTED="v$(node -p "require('./package.json').version")"
+          test "$APP_VERSION" = "$EXPECTED" || (echo "::error::La etiqueta debe ser $EXPECTED" && exit 1)
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+      - name: Set up Java
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: ''
+      - name: Install Android SDK packages
+        run: sdkmanager --install "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+      - name: Install Capacitor dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate Android project
+        run: npx cap add android
+      - name: Synchronize Capacitor project
+        run: npx cap sync android
+      - name: Configure permanent APK signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/nova-arcade-release.jks"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os, re
+          path = Path("android/app/build.gradle")
+          content = path.read_text()
+          version = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          major, minor, patch = (int(part) for part in version.split("."))
+          if minor >= 1000 or patch >= 1000 or major >= 1000:
+              raise SystemExit("La versión semántica excede el rango de versionCode admitido.")
+          code = major * 1_000_000 + minor * 1_000 + patch
+          content, n_code = re.subn(r"versionCode\s+\d+", f"versionCode {code}", content, count=1)
+          content, n_name = re.subn(r'versionName\s+["\'][^"\']+["\']', f'versionName "{version}"', content, count=1)
+          if n_code != 1 or n_name != 1:
+              raise SystemExit("No se pudo actualizar versionCode/versionName en build.gradle.")
+          signing = """
+              signingConfigs {
+                  release {
+                      storeFile file(System.getenv("KEYSTORE_PATH"))
+                      storePassword System.getenv("KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("KEY_ALIAS")
+                      keyPassword System.getenv("KEY_PASSWORD")
+                  }
+              }
+          """
+          if "signingConfigs {" not in content:
+              content = re.sub(r"(?m)^\s*buildTypes\s*\{", signing + "\\n            buildTypes {", content, count=1)
+          content, n_release = re.subn(r"(buildTypes\s*\{\s*release\s*\{)", r"\\1\\n            signingConfig signingConfigs.release", content, count=1)
+          if n_release != 1:
+              raise SystemExit("No se encontró buildTypes.release para configurar la firma.")
+          path.write_text(content)
+          PY
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/nova-arcade-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      - name: Build signed release APK
+        working-directory: android
+        run: ./gradlew --no-daemon --stacktrace assembleRelease
+      - name: Prepare release files
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk NOVA-ARCADE-Android.apk
+          sha256sum NOVA-ARCADE-Android.apk > NOVA-ARCADE-Android.apk.sha256
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          gh release create "$VERSION" NOVA-ARCADE-Android.apk NOVA-ARCADE-Android.apk.sha256 \
+            --title "NOVA ARCADE $VERSION" \
+            --notes "Actualización oficial de NOVA ARCADE para Android. La aplicación carga el contenido web publicado y necesita conexión a Internet." \
+            --latest
