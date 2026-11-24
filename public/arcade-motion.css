@@ -1106,3 +1106,36 @@ body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) 
 body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .main-search input,
 body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .main-search select { background:#fff;color:#172536;border-color:#d8e2ec; }
 body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .player-title { background:linear-gradient(120deg,#fff,#edf5ff);border-color:#d8e2ec; }
+
+
+/* Fase 1 de ajustes: accesibilidad y densidad del catálogo. */
+body:has(#app > .hero) .settings-divider,
+body:has(#app > .player-title) .settings-divider { height:1px; margin:14px 0 12px; background:var(--bd); }
+body:has(#app > .hero) .settings-subtitle,
+body:has(#app > .player-title) .settings-subtitle { display:block; margin-bottom:8px; font-size:13px; }
+body:has(#app > .hero) .settings-switch,
+body:has(#app > .player-title) .settings-switch,
+body:has(#app > .hero) .settings-field,
+body:has(#app > .player-title) .settings-field { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 0; }
+body:has(#app > .hero) .settings-switch span,
+body:has(#app > .player-title) .settings-switch span,
+body:has(#app > .hero) .settings-field span,
+body:has(#app > .player-title) .settings-field span { min-width:0; }
+body:has(#app > .hero) .settings-switch strong,
+body:has(#app > .player-title) .settings-switch strong,
+body:has(#app > .hero) .settings-field strong,
+body:has(#app > .player-title) .settings-field strong { display:block; font-size:12px; }
+body:has(#app > .hero) .settings-switch small,
+body:has(#app > .player-title) .settings-switch small,
+body:has(#app > .hero) .settings-field small,
+body:has(#app > .player-title) .settings-field small { display:block; margin-top:2px; color:var(--mut); font-size:11px; }
+body:has(#app > .hero) .settings-switch input { width:18px; height:18px; accent-color:var(--ac); flex:0 0 auto; }
+body:has(#app > .hero) .settings-field select,
+body:has(#app > .player-title) .settings-field select { max-width:145px; min-width:115px; padding:7px 8px; border:1px solid var(--bd); border-radius:8px; background:var(--bg); color:var(--tx); font:inherit; font-size:11px; }
+body:has(#app > .hero)[data-nova-density="compact"] .grid,
+body:has(#app > .player-title)[data-nova-density="compact"] .grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,175px),1fr)); gap:11px; }
+body:has(#app > .hero)[data-nova-density="large"] .grid,
+body:has(#app > .player-title)[data-nova-density="large"] .grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); gap:19px; }
+body[data-nova-motion="reduced"]:is(:has(#app > .hero),:has(#app > .player-title)) *,
+body[data-nova-motion="reduced"]:is(:has(#app > .hero),:has(#app > .player-title)) *::before,
+body[data-nova-motion="reduced"]:is(:has(#app > .hero),:has(#app > .player-title)) *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; }
