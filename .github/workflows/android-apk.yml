@@ -170,6 +170,11 @@ jobs:
           PY
       - name: Build signed release APK
         working-directory: android
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/nova-arcade-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew --no-daemon --stacktrace assembleRelease
       - name: Prepare release files
         run: |
