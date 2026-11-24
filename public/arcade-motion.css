@@ -824,58 +824,6 @@ body:has(#app > .hero) .seo-home-guide article {
 }
 
 
-/* Accessible volume control in the public game player. */
-body:has(#app > .player-title) .game-volume-control {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 40px;
-  padding: 6px 11px;
-  border: 1px solid color-mix(in srgb, var(--bd) 72%, #8b5cf6 28%);
-  border-radius: 12px;
-  color: var(--tx);
-  background: color-mix(in srgb, var(--card) 92%, transparent);
-  font-size: 13px;
-  font-weight: 650;
-}
-
-body:has(#app > .player-title) .game-volume-control input[type="range"] {
-  width: clamp(88px, 13vw, 150px);
-  accent-color: var(--ac);
-  cursor: pointer;
-}
-
-body:has(#app > .player-title) .game-volume-control input[type="range"]:disabled {
-  cursor: not-allowed;
-  opacity: .45;
-}
-
-body:has(#app > .player-title) .game-volume-control output {
-  min-width: 38px;
-  color: var(--tx);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-
-body:has(#app > .player-title) #gameVolumeStatus {
-  margin: 8px 2px 0;
-  color: var(--muted, #aab4ce);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-@media (max-width: 700px) {
-  body:has(#app > .player-title) .game-volume-control {
-    flex: 1 1 100%;
-    justify-content: space-between;
-  }
-  body:has(#app > .player-title) .game-volume-control input[type="range"] {
-    flex: 1;
-    max-width: 180px;
-  }
-}
-
-
 /* Align game actions to the right on desktop. */
 body:has(#app > .player-title) .player-controls {
   display: flex;
@@ -1053,16 +1001,6 @@ body:has(#app > .player-title) .game-frame-wrap {
   background: #080d11;
   box-shadow: 0 22px 54px rgb(0 0 0 / 38%), 0 0 0 4px rgb(35 136 255 / 5%);
 }
-
-body:has(#app > .player-title) .game-volume-control {
-  border-color: #344652;
-  background: #17222a;
-}
-
-body:has(#app > .player-title) .game-volume-control input[type="range"] {
-  accent-color: var(--ac2);
-}
-
 body:has(#app > .hero) footer {
   border-top-color: #263640;
 }
@@ -1089,3 +1027,82 @@ body:has(#app > .hero) footer {
     scroll-behavior: auto;
   }
 }
+
+
+/* Public visual settings: themes are scoped to catalogue and game player. */
+body:has(#app > .hero) .settings-wrap,
+body:has(#app > .player-title) .settings-wrap { position: relative; display: inline-flex; }
+body:has(#app > .hero) .settings-toggle,
+body:has(#app > .player-title) .settings-toggle { white-space: nowrap; }
+body:has(#app > .hero) .settings-panel,
+body:has(#app > .player-title) .settings-panel {
+  position: absolute; z-index: 1200; top: calc(100% + 12px); right: 0;
+  width: min(340px, calc(100vw - 24px)); padding: 16px;
+  border: 1px solid var(--bd); border-radius: 16px;
+  background: var(--card); color: var(--tx);
+  box-shadow: 0 18px 55px rgb(0 0 0 / 38%);
+}
+body:has(#app > .hero) .settings-panel[hidden],
+body:has(#app > .player-title) .settings-panel[hidden] { display: none !important; }
+.settings-panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.settings-panel-head strong { font-size:15px; }
+.settings-panel p { margin:7px 0 12px; color:var(--mut); font-size:12px; }
+.settings-close { width:30px; height:30px; border:1px solid var(--bd); border-radius:8px; background:transparent; color:var(--tx); font-size:21px; cursor:pointer; }
+.theme-options { display:grid; gap:7px; }
+.theme-option { display:grid; grid-template-columns:42px 1fr 18px; align-items:center; gap:10px; width:100%; padding:9px; border:1px solid var(--bd); border-radius:11px; background:transparent; color:var(--tx); text-align:left; cursor:pointer; }
+.theme-option:hover,.theme-option.is-active { border-color:var(--ac); background:color-mix(in srgb,var(--ac) 10%,var(--card)); }
+.theme-option strong,.theme-option small { display:block; }
+.theme-option strong { font-size:13px; }
+.theme-option small { margin-top:2px; color:var(--mut); font-size:11px; }
+.theme-check { opacity:0; color:var(--ac2); font-weight:900; }
+.theme-option.is-active .theme-check { opacity:1; }
+.theme-preview { width:40px; height:30px; border:1px solid rgb(255 255 255 / 18%); border-radius:8px; }
+.theme-preview-principal { background:linear-gradient(110deg,#2388ff 0 34%,#00c98d 34% 67%,#ff8a24 67%); }
+.theme-preview-neon { background:linear-gradient(110deg,#8b5cf6 0 34%,#22d3ee 34% 67%,#f472b6 67%); }
+.theme-preview-retro { background:linear-gradient(110deg,#ff8a24 0 34%,#f5c451 34% 67%,#713f12 67%); }
+.theme-preview-light { background:linear-gradient(110deg,#2563eb 0 34%,#059669 34% 67%,#f8fafc 67%); }
+.settings-reset { width:100%; margin-top:10px; padding:8px; border:1px solid var(--bd); border-radius:9px; background:transparent; color:var(--tx); font:inherit; font-size:12px; cursor:pointer; }
+.settings-reset:hover { border-color:var(--ac); }
+@media(max-width:600px) {
+ body:has(#app > .hero) .settings-panel,body:has(#app > .player-title) .settings-panel { right:-4px; }
+}
+
+/* Neon Galaxy */
+body[data-nova-theme="neon"]:is(:has(#app > .hero),:has(#app > .player-title)) {
+ --bg:#0d0b18;--card:#19152a;--tx:#f5f0ff;--mut:#b5a9ce;--ac:#8b5cf6;--ac2:#22d3ee;--bd:#382b55;--ok:#22d3ee;--na-orange:#f472b6;color-scheme:dark;
+}
+body[data-nova-theme="neon"]:is(:has(#app > .hero),:has(#app > .player-title)) { background-image:radial-gradient(ellipse at 10% 0%,rgb(139 92 246 / 20%),transparent 36rem),radial-gradient(ellipse at 90% 15%,rgb(34 211 238 / 12%),transparent 32rem),linear-gradient(180deg,#0d0b18,#120e20); }
+body[data-nova-theme="neon"]:is(:has(#app > .hero),:has(#app > .player-title)) .card,
+body[data-nova-theme="neon"]:is(:has(#app > .hero),:has(#app > .player-title)) .seo-home-guide article,
+body[data-nova-theme="neon"]:is(:has(#app > .hero),:has(#app > .player-title)) .settings-panel { background:linear-gradient(150deg,#211a36,#171326);border-color:#44315f; }
+body[data-nova-theme="neon"]:is(:has(#app > .hero),:has(#app > .player-title)) .logo { background-image:linear-gradient(100deg,#a78bfa,#22d3ee,#f472b6); }
+body[data-nova-theme="neon"]:is(:has(#app > .hero),:has(#app > .player-title)) .btn:not(.sec) { background:linear-gradient(110deg,#7c3aed,#0891b2); }
+
+/* Retro Arcade */
+body[data-nova-theme="retro"]:is(:has(#app > .hero),:has(#app > .player-title)) {
+ --bg:#17120e;--card:#241b14;--tx:#fff2dc;--mut:#c2a98a;--ac:#ff8a24;--ac2:#f5c451;--bd:#59412b;--ok:#f5c451;--na-orange:#ff8a24;color-scheme:dark;
+}
+body[data-nova-theme="retro"]:is(:has(#app > .hero),:has(#app > .player-title)) { background-image:radial-gradient(ellipse at 12% 0%,rgb(255 138 36 / 17%),transparent 36rem),radial-gradient(ellipse at 88% 12%,rgb(245 196 81 / 10%),transparent 32rem),linear-gradient(180deg,#17120e,#21170f); }
+body[data-nova-theme="retro"]:is(:has(#app > .hero),:has(#app > .player-title)) .card,
+body[data-nova-theme="retro"]:is(:has(#app > .hero),:has(#app > .player-title)) .seo-home-guide article,
+body[data-nova-theme="retro"]:is(:has(#app > .hero),:has(#app > .player-title)) .settings-panel { background:linear-gradient(150deg,#302216,#21180f);border-color:#654a2b; }
+body[data-nova-theme="retro"]:is(:has(#app > .hero),:has(#app > .player-title)) .logo { background-image:linear-gradient(100deg,#ff9b3d,#f5c451,#f97316); }
+body[data-nova-theme="retro"]:is(:has(#app > .hero),:has(#app > .player-title)) .btn:not(.sec) { background:linear-gradient(110deg,#ea580c,#b45309); }
+
+/* Light Mode */
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) {
+ --bg:#f3f7fb;--card:#ffffff;--tx:#172536;--mut:#627386;--ac:#2563eb;--ac2:#059669;--bd:#d8e2ec;--ok:#059669;--na-orange:#ea580c;color-scheme:light;
+}
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) { background-image:radial-gradient(ellipse at 8% 0%,rgb(37 99 235 / 10%),transparent 36rem),radial-gradient(ellipse at 92% 16%,rgb(5 150 105 / 8%),transparent 32rem),linear-gradient(180deg,#f3f7fb,#eaf1f7); }
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) header { background:rgb(243 247 251 / 90%);border-bottom-color:#d8e2ec; }
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .card,
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .seo-home-guide article,
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .settings-panel { background:#fff;border-color:#d8e2ec;box-shadow:0 8px 24px rgb(24 49 75 / 9%); }
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .logo { background-image:linear-gradient(100deg,#2563eb,#059669,#ea580c); }
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .btn:not(.sec) { background:linear-gradient(110deg,#2563eb,#1d4ed8); }
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .btn.sec,
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .tabs button,
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .quick-categories button { background:#fff;color:#24364a;border-color:#d8e2ec; }
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .main-search input,
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .main-search select { background:#fff;color:#172536;border-color:#d8e2ec; }
+body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .player-title { background:linear-gradient(120deg,#fff,#edf5ff);border-color:#d8e2ec; }
