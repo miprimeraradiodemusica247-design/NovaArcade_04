@@ -1316,9 +1316,10 @@ if ("serviceWorker" in navigator) {
 (function () {
   "use strict";
   var params = new URLSearchParams(window.location.search);
-  if (params.get("nova_android") !== "1") return;
+  var isNativeApp = params.get("nova_android") === "1" || /(?:; wv\\)|Capacitor)/i.test(navigator.userAgent);
+  if (!isNativeApp) return;
 
-  var currentVersion = params.get("app_version") || "0.0.0";
+  var currentVersion = params.get("app_version") || "1.0.3";
   var releaseApi = "https://api.github.com/repos/miprimeraradiodemusica247-design/NovaArcade_04/releases/latest";
 
   function compareVersions(a, b) {
