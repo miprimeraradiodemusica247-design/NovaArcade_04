@@ -12,6 +12,11 @@
 <meta property="og:description" content="Juega gratis a juegos de acción, disparos, carreras, aventuras, deportes y mucho más. Sin descargas." />
 <meta property="og:url" content="https://novaarcade04.vercel.app/" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1015">
+<meta name="application-name" content="NOVA ARCADE">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/nova-arcade.svg" type="image/svg+xml">
 <title>Juegos online gratis | NOVA ARCADE</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://novaarcade04.vercel.app/#organization","name":"NOVA ARCADE","url":"https://novaarcade04.vercel.app/"},{"@type":"WebSite","@id":"https://novaarcade04.vercel.app/#website","name":"NOVA ARCADE","url":"https://novaarcade04.vercel.app/","inLanguage":"es","publisher":{"@id":"https://novaarcade04.vercel.app/#organization"}},{"@type":"WebPage","@id":"https://novaarcade04.vercel.app/#webpage","url":"https://novaarcade04.vercel.app/","name":"Juegos online gratis | NOVA ARCADE","description":"Juegos online gratis en NOVA ARCADE. Juega a juegos de acción, disparos, coches, carreras, aventuras y deportes. Explora juegos para navegador.","inLanguage":"es","isPartOf":{"@id":"https://novaarcade04.vercel.app/#website"},"about":{"@id":"https://novaarcade04.vercel.app/#organization"}}]}</script>
 <style>
@@ -1296,6 +1301,15 @@ render();
     app.innerHTML='<section class="hero"><h1>No se pudo cargar el catálogo</h1><p>Comprueba tu conexión y vuelve a intentarlo.</p><a class="btn" href="/">Reintentar</a></section>';
   }
 });
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function (error) {
+      console.error("NOVA ARCADE: no se pudo registrar el modo instalable.", error);
+    });
+  });
+}
 </script>
 </body>
 </html>

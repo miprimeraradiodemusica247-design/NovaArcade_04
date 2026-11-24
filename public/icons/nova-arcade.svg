@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>NOVA ARCADE</title>
+  <rect width="512" height="512" rx="112" fill="#0B1015"/>
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="#151D24" stroke="#2388FF" stroke-width="8"/>
+  <path d="M256 78 310 176H202Z" fill="#E7CB8B"/>
+  <path d="M116 260c12-63 54-91 110-91h60c56 0 98 28 110 91l15 75c8 40-30 65-63 49l-42-21c-31-15-69-15-100 0l-42 21c-33 16-71-9-63-49z" fill="#0B1015" stroke="#00C98D" stroke-width="14" stroke-linejoin="round"/>
+  <path d="M174 247v74m-37-37h74" stroke="#E7CB8B" stroke-width="20" stroke-linecap="round"/>
+  <g fill="#FF8A24"><circle cx="330" cy="244" r="15"/><circle cx="365" cy="279" r="15"/><circle cx="330" cy="314" r="15"/><circle cx="295" cy="279" r="15"/></g>
+</svg>

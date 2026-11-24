@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "NOVA ARCADE - Juegos online",
+  "short_name": "NOVA ARCADE",
+  "description": "Juegos online gratis para Android. Explora el catálogo y juega desde el navegador.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0B1015",
+  "theme_color": "#0B1015",
+  "categories": ["games", "entertainment"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/nova-arcade.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
