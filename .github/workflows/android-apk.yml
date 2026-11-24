@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   build-debug:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     name: Build test APK
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -67,7 +67,7 @@ jobs:
           retention-days: 14
 
   publish-release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     name: Build and publish signed Android update
     runs-on: ubuntu-latest
     timeout-minutes: 35
@@ -91,12 +91,16 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 24
-      - name: Validate tag matches app version
-        env:
-          APP_VERSION: ${{ github.ref_name }}
+      - name: Resolve and validate release version
         run: |
           EXPECTED="v$(node -p "require('./package.json').version")"
-          test "$APP_VERSION" = "$EXPECTED" || (echo "::error::La etiqueta debe ser $EXPECTED" && exit 1)
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            RELEASE_VERSION="$GITHUB_REF_NAME"
+          else
+            RELEASE_VERSION="$EXPECTED"
+          fi
+          test "$RELEASE_VERSION" = "$EXPECTED" || (echo "::error::La versión debe ser $EXPECTED" && exit 1)
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_ENV"
       - name: Set up Java
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
         with:
@@ -114,7 +118,7 @@ jobs:
         run: npx cap add android
       - name: Set embedded app version
         env:
-          APP_VERSION: ${{ github.ref_name }}
+          APP_VERSION: ${{ env.RELEASE_VERSION }}
         run: |
           node - <<'NODE'
           const fs = require("node:fs");
@@ -122,7 +126,7 @@ jobs:
           const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
           const url = new URL(config.server.url);
           url.searchParams.set("nova_android", "1");
-          url.searchParams.set("app_version", process.env.APP_VERSION.replace(/^v/, ""));
+          url.searchParams.set("app_version", process.env.RELEASE_VERSION.replace(/^v/, ""));
           config.server.url = url.toString();
           fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
           NODE
@@ -142,7 +146,7 @@ jobs:
           import os, re
           path = Path("android/app/build.gradle")
           content = path.read_text()
-          version = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          version = os.environ["RELEASE_VERSION"].removeprefix("v")
           major, minor, patch = (int(part) for part in version.split("."))
           if minor >= 1000 or patch >= 1000 or major >= 1000:
               raise SystemExit("La versión semántica excede el rango de versionCode admitido.")
