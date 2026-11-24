@@ -364,7 +364,6 @@ function bindPlayer(){
   if(!frame||!frame.contentDocument)return false;
   try{
    var doc=frame.contentDocument,media=doc.querySelectorAll("audio,video");
-   if(!media.length)return false;
    media.forEach(function(element){element.volume=value;});
    if(mediaObserver)mediaObserver.disconnect();
    var Observer=frame.contentWindow.MutationObserver;
