@@ -120,6 +120,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_PATH: ${{ runner.temp }}/nova-arcade-release.jks
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/nova-arcade-release.jks"
           python3 - <<'PY'
@@ -147,17 +148,12 @@ jobs:
               }
           """
           if "signingConfigs {" not in content:
-              content = re.sub(r"(?m)^\s*buildTypes\s*\{", signing + "\\n            buildTypes {", content, count=1)
-          content, n_release = re.subn(r"(buildTypes\s*\{\s*release\s*\{)", r"\\1\\n            signingConfig signingConfigs.release", content, count=1)
+              content = content.replace("buildTypes {", signing + "\\n            buildTypes {", 1)
+          content, n_release = re.subn(r"(buildTypes\s*\{\s*release\s*\{)", lambda match: match.group(1) + "\\n            signingConfig signingConfigs.release", content, count=1)
           if n_release != 1:
               raise SystemExit("No se encontró buildTypes.release para configurar la firma.")
           path.write_text(content)
           PY
-        env:
-          KEYSTORE_PATH: ${{ runner.temp }}/nova-arcade-release.jks
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       - name: Build signed release APK
         working-directory: android
         run: ./gradlew --no-daemon --stacktrace assembleRelease
