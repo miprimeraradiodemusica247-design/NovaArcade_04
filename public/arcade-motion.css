@@ -1338,3 +1338,294 @@ body:has(#app > .hero) .infinite-end { font-size: 12px; }
   body:has(#app > .hero) .cover img { height: 94px; }
   body:has(#app > .hero) .card .b { padding: 8px; }
 }
+
+
+/* NOVA ARCADE — visual refinement inspired by proven game-discovery patterns.
+   Public catalogue/player only: admin, account and authentication remain untouched. */
+body:has(#app > .hero) main {
+  max-width: 1520px;
+  padding-top: clamp(18px, 3vw, 34px);
+  padding-bottom: 56px;
+}
+
+body:has(#app > .hero) .hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(26px, 5vw, 58px);
+  margin: 10px 0 24px;
+  border: 1px solid color-mix(in srgb, var(--bd) 72%, var(--ac) 28%);
+  border-radius: 26px;
+  background:
+    radial-gradient(ellipse at 86% 12%, color-mix(in srgb, var(--ac2) 17%, transparent), transparent 34%),
+    radial-gradient(ellipse at 8% 100%, color-mix(in srgb, var(--ac) 17%, transparent), transparent 42%),
+    linear-gradient(130deg, color-mix(in srgb, var(--card) 96%, var(--ac) 4%), var(--card) 70%);
+  box-shadow: 0 20px 55px rgb(0 0 0 / 16%);
+}
+
+body:has(#app > .hero) .hero::after {
+  content: "✦";
+  position: absolute;
+  z-index: -1;
+  right: clamp(20px, 7vw, 100px);
+  top: 50%;
+  transform: translateY(-50%);
+  color: color-mix(in srgb, var(--ac2) 20%, transparent);
+  font-size: clamp(110px, 20vw, 260px);
+  line-height: 1;
+  pointer-events: none;
+}
+
+body:has(#app > .hero) .hero h1 {
+  max-width: 780px;
+  font-size: clamp(32px, 5.2vw, 60px);
+  letter-spacing: -.045em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+body:has(#app > .hero) .hero p {
+  max-width: 620px;
+  margin-top: 12px;
+  font-size: clamp(14px, 1.2vw, 16px);
+  line-height: 1.65;
+}
+
+body:has(#app > .hero) .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 11px;
+  border: 1px solid color-mix(in srgb, var(--ac) 32%, var(--bd));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ac) 9%, var(--card));
+  font-size: 10px;
+  letter-spacing: .16em;
+}
+
+body:has(#app > .hero) .hero-stats {
+  gap: 9px;
+  margin-top: 22px;
+}
+
+body:has(#app > .hero) .hero-stats span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 11px;
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+body:has(#app > .hero) .main-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 22px 0 12px;
+  padding: 10px;
+  border-radius: 17px;
+  box-shadow: 0 12px 34px rgb(0 0 0 / 12%);
+  backdrop-filter: blur(14px);
+}
+
+body:has(#app > .hero) .main-search input {
+  min-height: 44px;
+  padding-inline: 14px;
+  border-radius: 11px;
+}
+
+body:has(#app > .hero) .main-search select,
+body:has(#app > .hero) .main-search .btn {
+  min-height: 42px;
+  border-radius: 11px;
+}
+
+body:has(#app > .hero) .quick-categories {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 5px 1px 12px;
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+}
+
+body:has(#app > .hero) .quick-categories button {
+  flex: 0 0 auto;
+  min-height: 35px;
+  padding: 7px 13px;
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+body:has(#app > .hero) .quick-categories button[aria-pressed="true"] {
+  box-shadow: 0 5px 16px color-mix(in srgb, var(--ac) 22%, transparent);
+}
+
+body:has(#app > .hero) .game-section {
+  margin: clamp(24px, 4vw, 42px) 0;
+  scroll-margin-top: 90px;
+}
+
+body:has(#app > .hero) .game-section > h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  font-size: clamp(17px, 1.7vw, 22px);
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+
+body:has(#app > .hero) .game-section > h2::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, var(--bd), transparent);
+}
+
+body:has(#app > .hero) .card {
+  border-radius: 15px;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 13%);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+body:has(#app > .hero) .cover {
+  background-size: cover;
+  background-position: center;
+}
+
+body:has(#app > .hero) .cover img {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  transition: transform .35s ease;
+}
+
+body:has(#app > .hero) .card .b {
+  gap: 7px;
+}
+
+body:has(#app > .hero) .card .tag {
+  border-color: color-mix(in srgb, var(--ac) 30%, var(--bd));
+  background: color-mix(in srgb, var(--ac) 8%, var(--card));
+  color: var(--tx);
+}
+
+body:has(#app > .hero) .favorite-btn[aria-pressed="true"] {
+  border-color: color-mix(in srgb, #ef6685 55%, var(--bd));
+  background: color-mix(in srgb, #ef6685 13%, var(--card));
+  color: #ff829c;
+}
+
+body:has(#app > .hero) .empty {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  padding: 30px 20px;
+  border: 1px dashed color-mix(in srgb, var(--bd) 65%, var(--ac) 35%);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--ac) 10%, transparent), transparent 70%),
+    color-mix(in srgb, var(--card) 88%, transparent);
+  color: var(--mut);
+  font-size: 14px;
+  text-align: center;
+}
+
+body:has(#app > .hero) .infinite-load,
+body:has(#app > .hero) .infinite-end {
+  padding: 18px;
+  border: 1px solid var(--bd);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+}
+
+body:has(#app > .player-title) main {
+  max-width: 1320px;
+  padding-top: 24px;
+}
+
+body:has(#app > .player-title) .player-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0 16px;
+}
+
+body:has(#app > .player-title) .player-title {
+  padding: clamp(16px, 3vw, 24px);
+  border: 1px solid var(--bd);
+  border-radius: 18px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 13%);
+}
+
+body:has(#app > .player-title) .player-title h1 {
+  letter-spacing: -.03em;
+}
+
+body:has(#app > .player-title) .game-frame-wrap {
+  border-radius: 18px;
+}
+
+body:has(#app > .player-title) .player-controls .btn {
+  min-height: 40px;
+  border-radius: 11px;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  body:has(#app > .hero) .card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--ac) 70%, var(--bd));
+    box-shadow: 0 18px 34px rgb(0 0 0 / 22%);
+  }
+  body:has(#app > .hero) .card:hover .cover img {
+    transform: scale(1.045);
+  }
+  body:has(#app > .hero) .quick-categories button:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 700px) {
+  body:has(#app > .hero) .hero {
+    padding: 25px 20px;
+    border-radius: 20px;
+  }
+  body:has(#app > .hero) .hero::after {
+    right: 8px;
+    top: 20px;
+    transform: none;
+    font-size: 100px;
+  }
+  body:has(#app > .hero) .main-search {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  body:has(#app > .hero) .main-search input,
+  body:has(#app > .hero) .main-search #clearFilters {
+    grid-column: 1 / -1;
+  }
+  body:has(#app > .hero) .main-search select,
+  body:has(#app > .hero) .main-search .btn {
+    width: 100%;
+    min-width: 0;
+  }
+  body:has(#app > .hero) .game-section {
+    margin: 25px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(#app > .hero) .card,
+  body:has(#app > .hero) .cover img,
+  body:has(#app > .hero) .quick-categories button {
+    transition: none !important;
+  }
+}
