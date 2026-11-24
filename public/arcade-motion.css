@@ -1132,3 +1132,12 @@ body:has(#app > .player-title) .settings-field small { display:block; margin-top
 body:has(#app > .hero) .settings-switch input { width:18px; height:18px; accent-color:var(--ac); flex:0 0 auto; }
 body:has(#app > .hero) .settings-field select,
 body:has(#app > .player-title) .settings-field select { max-width:145px; min-width:115px; padding:7px 8px; border:1px solid var(--bd); border-radius:8px; background:var(--bg); color:var(--tx); font:inherit; font-size:11px; }
+
+/* Preferencias de experiencia: solo catálogo público y reproductor. */
+body:has(#app > .hero)[data-nova-density="compact"] .grid,
+body:has(#app > .player-title)[data-nova-density="compact"] .grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,175px),1fr)); gap:11px; }
+body:has(#app > .hero)[data-nova-density="large"] .grid,
+body:has(#app > .player-title)[data-nova-density="large"] .grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); gap:19px; }
+body[data-nova-motion="reduced"]:is(:has(#app > .hero),:has(#app > .player-title)) *,
+body[data-nova-motion="reduced"]:is(:has(#app > .hero),:has(#app > .player-title)) *::before,
+body[data-nova-motion="reduced"]:is(:has(#app > .hero),:has(#app > .player-title)) *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; }
