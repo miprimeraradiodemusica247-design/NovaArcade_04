@@ -112,6 +112,21 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Generate Android project
         run: npx cap add android
+      - name: Set embedded app version
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+        run: |
+          VERSION="${APP_VERSION#v}"
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const configPath = "capacitor.config.json";
+          const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+          const url = new URL(config.server.url);
+          url.searchParams.set("nova_android", "1");
+          url.searchParams.set("app_version", process.env.VERSION);
+          config.server.url = url.toString();
+          fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\\n");
+          NODE
       - name: Synchronize Capacitor project
         run: npx cap sync android
       - name: Configure permanent APK signing
