@@ -134,14 +134,36 @@ input,select,textarea{font-size:13px;min-width:0}
 <link rel="preconnect" href="https://static.playgama.com" crossorigin>
 <link rel="preconnect" href="https://eyntsvwjesmxzfkuxukj.supabase.co" crossorigin>
 <script>
-window.__novaSupabaseReady = new Promise(function(resolve, reject) {
-  var sdk = document.createElement("script");
-  sdk.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2";
-  sdk.async = true;
-  sdk.onload = resolve;
-  sdk.onerror = function() { reject(new Error("No se pudo cargar el cliente de NOVA ARCADE.")); };
-  document.head.appendChild(sdk);
-});
+function loadNovaSupabaseSdk(source) {
+  return new Promise(function(resolve, reject) {
+    var sdk = document.createElement("script");
+    var settled = false;
+    var timeout = window.setTimeout(function() {
+      if (settled) return;
+      settled = true;
+      sdk.onload = sdk.onerror = null;
+      sdk.remove();
+      reject(new Error("Tiempo de espera agotado al cargar Supabase."));
+    }, 7000);
+    function finish(error) {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      sdk.onload = sdk.onerror = null;
+      if (error) { sdk.remove(); reject(error); }
+      else resolve();
+    }
+    sdk.src = source;
+    sdk.async = true;
+    sdk.onload = function() { finish(); };
+    sdk.onerror = function() { finish(new Error("No se pudo descargar el cliente de Supabase.")); };
+    document.head.appendChild(sdk);
+  });
+}
+window.__novaSupabaseReady = loadNovaSupabaseSdk("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2")
+  .catch(function() {
+    return loadNovaSupabaseSdk("https://unpkg.com/@supabase/supabase-js@2.119.2/dist/umd/supabase.js");
+  });
 </script>
 <link rel="preload" href="/arcade-motion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="/arcade-motion.css"></noscript>
@@ -187,7 +209,7 @@ var CATS=["Acción","Aventura","Arcade","Carreras","Coches","Deportes","Disparos
 var COL=["#7c3aed","#db2777","#0891b2","#16a34a","#ea580c","#2563eb"];
 function ld(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-var games=ld("na_games",[]),catalogLoaded=false;
+var games=ld("na_games",[]),catalogLoaded=false,catalogLoadError=null;
 var DEF={w1:{url:"",on:false,ev:{add:true,edit:true,publish:true,hide:true,del:true,login:false,fail:false}},w2:{url:"",on:false,ev:{add:false,edit:false,publish:false,hide:false,del:false,login:true,fail:true}},relay:"/api/notify"};
 var cfg=Object.assign({},DEF,ld("na_cfg",{}));cfg.relay="/api/notify";
 var adminSession=null;
@@ -213,6 +235,15 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;
 function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(function(b){return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("")})}
 function col(g){var s=String(g.id||g.name||"0"),h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return COL[(h>>>0)%COL.length]}
 function safeUrl(u){return /^https?:\/\//i.test(u)?u:"#"}
+function withTimeout(operation,milliseconds,message){
+  var timeoutId;
+  return Promise.race([
+    Promise.resolve(operation),
+    new Promise(function(resolve,reject){
+      timeoutId=window.setTimeout(function(){reject(new Error(message));},milliseconds);
+    })
+  ]).finally(function(){window.clearTimeout(timeoutId);});
+}
 function coverImageUrl(value){
   var source=safeUrl(value);
   if(source==="#")return "";
@@ -344,11 +375,11 @@ function pubView(){
  var pageItems=list.slice((publicPage-1)*PUBLIC_PAGE_SIZE,publicPage*PUBLIC_PAGE_SIZE);
  var pager=list.length>PUBLIC_PAGE_SIZE?'<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:22px 0"><button class="btn sec sm" id="publicPrev"'+(publicPage<=1?' disabled':'')+'>← Anterior</button><span>Página '+publicPage+' de '+totalPages+' · '+list.length+' juegos</span><button class="btn sec sm" id="publicNext"'+(publicPage>=totalPages?' disabled':'')+'>Siguiente →</button></div>':"";
  var opts=CATS.map(function(c){return '<option value="'+esc(c)+'"'+(c===fc?' selected':'')+'>'+esc(c)+'</option>';}).join("");
- return '<section class="hero"><span class="eyebrow">TU UNIVERSO DE JUEGOS</span><h1>Juegos online gratis para jugar al instante.</h1><p>Descubre juegos online gratis: juegos de acción, disparos, coches, carreras, aventuras, deportes y mucho más. Explora el catálogo, encuentra juegos para navegador y empieza a jugar.</p><div class="hero-stats"><span>🎮 '+vis.length+' juegos</span><span>⚡ Sin descargas</span><span>♥ Favoritos</span></div></section>'+
+ return (catalogLoadError?'<div class="panel" role="status" style="max-width:none;margin:12px 0;border-color:var(--bad)"><strong>No se pudo actualizar el catálogo.</strong><p class="note">'+esc(catalogLoadError)+'</p><a class="btn sec" href="/">Reintentar carga</a></div>':'')+'<section class="hero"><span class="eyebrow">TU UNIVERSO DE JUEGOS</span><h1>Juegos online gratis para jugar al instante.</h1><p>Descubre juegos online gratis: juegos de acción, disparos, coches, carreras, aventuras, deportes y mucho más. Explora el catálogo, encuentra juegos para navegador y empieza a jugar.</p><div class="hero-stats"><span>🎮 '+vis.length+' juegos</span><span>⚡ Sin descargas</span><span>♥ Favoritos</span></div></section>'+
  '<div class="bar main-search"><input id="s" type="search" aria-label="Buscar juegos" placeholder="Buscar juegos…" value="'+esc(q)+'"><select id="c" aria-label="Filtrar juegos por categoría"><option value="">Todas las categorías</option>'+opts+'</select><select id="sort" aria-label="Ordenar juegos"><option value="popular"'+(sortMode==="popular"?" selected":"")+'>Recomendados</option><option value="az"'+(sortMode==="az"?" selected":"")+'>Nombre A-Z</option><option value="za"'+(sortMode==="za"?" selected":"")+'>Nombre Z-A</option><option value="featured"'+(sortMode==="featured"?" selected":"")+' >Destacados primero</option><option value="newest"'+(sortMode==="newest"?" selected":"")+' >Novedades</option></select><button class="btn sec" id="favFilter">'+(onlyFavorites?"♥ Todos":"♡ Favoritos")+'</button><button class="btn sec" id="randomGame">🎲 Juego aleatorio</button><button class="btn sec" id="clearFilters">Limpiar filtros</button></div>'+
  '<nav class="quick-categories" aria-label="Accesos rápidos a categorías">'+CATS.slice(0,12).map(function(category){return '<button type="button" data-category="'+esc(category)+'" aria-pressed="'+(fc===category?"true":"false")+'">'+esc(category)+'</button>';}).join("")+'</nav>'+
  (!q&&!fc&&!onlyFavorites?section("⭐ Destacados",feat)+section("🆕 Recién añadidos",vis.slice().sort(function(a,b){return (Date.parse(b.created_at||"")||0)-(Date.parse(a.created_at||"")||0);}).slice(0,8))+section("🕹️ Seguir jugando",recent)+section("♥ Tus favoritos",favs):"")+
- '<section class="game-section"><h2>'+(onlyFavorites?"Tus favoritos":"Explorar juegos")+'</h2>'+(pageItems.length?'<div class="grid">'+pageItems.map(card).join("")+'</div>':'<div class="empty">No encontramos juegos.</div>')+pager+'</section>';
+ '<section class="game-section"><h2>'+(onlyFavorites?"Tus favoritos":"Explorar juegos")+'</h2>'+(pageItems.length?'<div class="grid">'+pageItems.map(card).join("")+'</div>':'<div class="empty">'+(vis.length===0?'Todavía no hay juegos publicados.':'No encontramos juegos con esos filtros.')+'</div>')+pager+'</section>';
 }
 function gamePlayerView(){
  var id=decodeURIComponent(location.hash.slice(6));
@@ -504,9 +535,10 @@ function authLoadingView(){
 function gameFromRow(r){var name=r.name||"",description=r.description||"",category=r.category||CATS[0];return {id:r.id,name:name,desc:description,cat:category,emoji:"🎮",url:r.game_url||"",pub:!!r.is_published,feat:!!r.is_featured,cover_path:r.cover_path||null,cover_url:r.cover_url||null,sort_order:Number(r.sort_order)||0,created_at:r.created_at||null,created_by:r.created_by||null,_search:normalizeSearch(name+" "+description+" "+category)};}
 async function loadPersistentGames(){
   var pageSize=1000,batchSize=4,rows=[];
+  catalogLoadError=null;
   var countQuery=supabaseClient.from("games").select("id",{count:"exact",head:true});
   if(!admin)countQuery=countQuery.eq("is_published",true);
-  var countResult=await countQuery;
+  var countResult=await withTimeout(countQuery,12000,"La base de datos tardó demasiado en responder.");
   if(countResult.error)throw countResult.error;
   var totalRows=Number(countResult.count||0);
   if(!Number.isSafeInteger(totalRows)||totalRows<0)throw new Error("El recuento del catálogo no es válido.");
@@ -522,7 +554,7 @@ async function loadPersistentGames(){
       if(!admin)query=query.eq("is_published",true);
       requests.push(query.range(pageOffset,pageOffset+pageSize-1));
     }
-    var results=await Promise.all(requests);
+    var results=await withTimeout(Promise.all(requests),12000,"La descarga de juegos tardó demasiado en responder.");
     for(var resultIndex=0;resultIndex<results.length;resultIndex++){
       var result=results[resultIndex];
       if(result.error)throw result.error;
@@ -554,10 +586,16 @@ async function refreshAdminState(session){
   adminUser=null;
   admin=false;
   if(session&&session.user){
-    const {data,error}=await supabaseClient.from("admin_users").select("user_id").eq("user_id",session.user.id).maybeSingle();
-    if(!error&&data&&data.user_id===session.user.id){adminUser=session.user;admin=true;}
+    try{
+      const lookup=await withTimeout(supabaseClient.from("admin_users").select("user_id").eq("user_id",session.user.id).maybeSingle(),10000,"La comprobación de permisos tardó demasiado.");
+      if(!lookup.error&&lookup.data&&lookup.data.user_id===session.user.id){adminUser=session.user;admin=true;}
+      else if(lookup.error){console.error("No se pudieron comprobar los permisos de administrador:",lookup.error);}
+    }catch(error){console.error("No se pudieron comprobar los permisos de administrador:",error);}
   }
-  try{await loadPersistentGames();}catch(error){console.error("Error cargando el catálogo:",error);}
+  try{await loadPersistentGames();}catch(error){
+    catalogLoadError=error&&error.message?error.message:"No se pudo conectar con el catálogo.";
+    console.error("Error cargando el catálogo:",error);
+  }
   catalogLoaded=true;
   adminChecked=true;
   var app=document.getElementById("app");
@@ -958,35 +996,16 @@ function applyNovaTheme(theme){
  try{localStorage.setItem("nova-arcade-theme",selected);}catch(error){}
  return selected;
 }
-function readNovaPreferences(){
- var defaults={reducedMotion:false,density:"comfortable"};
- try{
-  var stored=JSON.parse(localStorage.getItem("nova-arcade-preferences")||"{}");
-  return {reducedMotion:stored.reducedMotion===true,density:["comfortable","compact","large"].indexOf(stored.density)>=0?stored.density:"comfortable"};
- }catch(error){return defaults;}
-}
-function applyNovaPreferences(preferences){
- var safe={reducedMotion:preferences&&preferences.reducedMotion===true,density:preferences&&["comfortable","compact","large"].indexOf(preferences.density)>=0?preferences.density:"comfortable"};
- document.body.setAttribute("data-nova-motion",safe.reducedMotion?"reduced":"full");
- document.body.setAttribute("data-nova-density",safe.density);
- try{localStorage.setItem("nova-arcade-preferences",JSON.stringify(safe));}catch(error){}
- return safe;
-}
-var novaPreferences=applyNovaPreferences(readNovaPreferences());
 function bindSettings(){
  var toggle=$("#settingsToggle"),panel=$("#settingsPanel"),close=$("#settingsClose"),reset=$("#settingsReset");
  if(!toggle||!panel)return;
  var selected=document.body.getAttribute("data-nova-theme")||"principal";
- var motion=$("#settingReducedMotion"),density=$("#settingDensity");
  function sync(){
   document.querySelectorAll("[data-theme-choice]").forEach(function(button){
    var active=button.getAttribute("data-theme-choice")===selected;
    button.classList.toggle("is-active",active);
    button.setAttribute("aria-pressed",active?"true":"false");
   });
-  var current=readNovaPreferences();
-  if(motion)motion.checked=current.reducedMotion;
-  if(density)density.value=current.density;
  }
  function setOpen(open){
   panel.hidden=!open;
@@ -997,9 +1016,7 @@ function bindSettings(){
  panel.querySelectorAll("[data-theme-choice]").forEach(function(button){
   button.onclick=function(){selected=applyNovaTheme(button.getAttribute("data-theme-choice"));sync();};
  });
- if(motion)motion.onchange=function(){novaPreferences=applyNovaPreferences({reducedMotion:motion.checked,density:density?density.value:"comfortable"});};
- if(density)density.onchange=function(){novaPreferences=applyNovaPreferences({reducedMotion:motion?motion.checked:false,density:density.value});};
- if(reset)reset.onclick=function(){selected=applyNovaTheme("principal");novaPreferences=applyNovaPreferences({reducedMotion:false,density:"comfortable"});sync();};
+ if(reset)reset.onclick=function(){selected=applyNovaTheme("principal");sync();};
  document.addEventListener("keydown",function(event){
   if(event.key==="Escape"&&!panel.hidden){setOpen(false);toggle.focus();}
  });
@@ -1010,14 +1027,14 @@ try{applyNovaTheme(localStorage.getItem("nova-arcade-theme")||"principal");}
 catch(error){applyNovaTheme("principal");}
 function render(){
   var isA=location.hash==="#admin",isAccount=location.hash==="#cuenta",isPlay=location.hash.indexOf("#play/")===0;
-  if(isPlay){$("#nav").innerHTML="<a class=\"btn sec sm\" href=\"#cuenta\">Mi cuenta</a> <a class=\"btn sec sm\" href=\"#\">Inicio</a> <span class=\"settings-wrap\"><button class=\"btn sec sm settings-toggle\" id=\"settingsToggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"settingsPanel\">⚙ Configuración</button><section class=\"settings-panel\" id=\"settingsPanel\" aria-label=\"Configuración visual\" hidden><div class=\"settings-panel-head\"><strong>Aspecto de NOVA ARCADE</strong><button type=\"button\" class=\"settings-close\" id=\"settingsClose\" aria-label=\"Cerrar configuración\">×</button></div><p>Elige el tema que prefieras. Se guardará en este dispositivo.</p><div class="settings-divider"></div><strong class="settings-subtitle">Experiencia de juego</strong><label class="settings-switch" for="settingReducedMotion"><span><strong>Reducir animaciones</strong><small>Menos movimiento y transiciones.</small></span><input type="checkbox" id="settingReducedMotion"></label><label class="settings-field" for="settingDensity"><span><strong>Densidad del catálogo</strong><small>Cuántos juegos aparecen por fila.</small></span><select id="settingDensity"><option value="comfortable">Cómoda</option><option value="compact">Compacta</option><option value="large">Tarjetas grandes</option></select></label><div class=\"theme-options\"><button type=\"button\" class=\"theme-option\" data-theme-choice=\"principal\"><span class=\"theme-preview theme-preview-principal\"></span><span><strong>Principal</strong><small>Emerald · Blue · Orange</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"neon\"><span class=\"theme-preview theme-preview-neon\"></span><span><strong>Neon Galaxy</strong><small>Violeta · Cian · Rosa</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"retro\"><span class=\"theme-preview theme-preview-retro\"></span><span><strong>Retro Arcade</strong><small>Carbón · Naranja · Dorado</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"light\"><span class=\"theme-preview theme-preview-light\"></span><span><strong>Light Mode</strong><small>Claro · Azul · Esmeralda</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button></div><button type=\"button\" class=\"settings-reset\" id=\"settingsReset\">Restablecer configuración</button></section></span>";$("#app").innerHTML=gamePlayerView();bindPlayer();return;}
+  if(isPlay){$("#nav").innerHTML="<a class=\"btn sec sm\" href=\"#cuenta\">Mi cuenta</a> <a class=\"btn sec sm\" href=\"#\">Inicio</a> <span class=\"settings-wrap\"><button class=\"btn sec sm settings-toggle\" id=\"settingsToggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"settingsPanel\">⚙ Configuración</button><section class=\"settings-panel\" id=\"settingsPanel\" aria-label=\"Configuración visual\" hidden><div class=\"settings-panel-head\"><strong>Aspecto de NOVA ARCADE</strong><button type=\"button\" class=\"settings-close\" id=\"settingsClose\" aria-label=\"Cerrar configuración\">×</button></div><p>Elige el tema que prefieras. Se guardará en este dispositivo.</p><div class=\"theme-options\"><button type=\"button\" class=\"theme-option\" data-theme-choice=\"principal\"><span class=\"theme-preview theme-preview-principal\"></span><span><strong>Principal</strong><small>Emerald · Blue · Orange</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"neon\"><span class=\"theme-preview theme-preview-neon\"></span><span><strong>Neon Galaxy</strong><small>Violeta · Cian · Rosa</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"retro\"><span class=\"theme-preview theme-preview-retro\"></span><span><strong>Retro Arcade</strong><small>Carbón · Naranja · Dorado</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"light\"><span class=\"theme-preview theme-preview-light\"></span><span><strong>Light Mode</strong><small>Claro · Azul · Esmeralda</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button></div><button type=\"button\" class=\"settings-reset\" id=\"settingsReset\">Restablecer configuración</button></section></span>";$("#app").innerHTML=gamePlayerView();bindPlayer();return;}
   if(isAccount){
     $("#nav").innerHTML='<a class="btn sec sm" href="#">Inicio</a> <a class="btn sec sm" href="#admin">Admin</a>';
     $("#app").innerHTML=accountView();
     bind(false);
     return;
   }
-  $("#nav").innerHTML=isA&&admin?'<button class="btn sec sm" id="ver">Ver web</button> <button class="btn sec sm" id="out">Cerrar sesión</button>':isA?'':"<a class=\"btn sec sm\" style=\"text-decoration:none\" href=\"#cuenta\">Mi cuenta</a> <a class=\"btn sec sm\" style=\"text-decoration:none\" href=\"#admin\">Admin</a> <span class=\"settings-wrap\"><button class=\"btn sec sm settings-toggle\" id=\"settingsToggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"settingsPanel\">⚙ Configuración</button><section class=\"settings-panel\" id=\"settingsPanel\" aria-label=\"Configuración visual\" hidden><div class=\"settings-panel-head\"><strong>Aspecto de NOVA ARCADE</strong><button type=\"button\" class=\"settings-close\" id=\"settingsClose\" aria-label=\"Cerrar configuración\">×</button></div><p>Elige el tema que prefieras. Se guardará en este dispositivo.</p><div class="settings-divider"></div><strong class="settings-subtitle">Experiencia de juego</strong><label class="settings-switch" for="settingReducedMotion"><span><strong>Reducir animaciones</strong><small>Menos movimiento y transiciones.</small></span><input type="checkbox" id="settingReducedMotion"></label><label class="settings-field" for="settingDensity"><span><strong>Densidad del catálogo</strong><small>Cuántos juegos aparecen por fila.</small></span><select id="settingDensity"><option value="comfortable">Cómoda</option><option value="compact">Compacta</option><option value="large">Tarjetas grandes</option></select></label><div class=\"theme-options\"><button type=\"button\" class=\"theme-option\" data-theme-choice=\"principal\"><span class=\"theme-preview theme-preview-principal\"></span><span><strong>Principal</strong><small>Emerald · Blue · Orange</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"neon\"><span class=\"theme-preview theme-preview-neon\"></span><span><strong>Neon Galaxy</strong><small>Violeta · Cian · Rosa</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"retro\"><span class=\"theme-preview theme-preview-retro\"></span><span><strong>Retro Arcade</strong><small>Carbón · Naranja · Dorado</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"light\"><span class=\"theme-preview theme-preview-light\"></span><span><strong>Light Mode</strong><small>Claro · Azul · Esmeralda</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button></div><button type=\"button\" class=\"settings-reset\" id=\"settingsReset\">Restablecer configuración</button></section></span>";
+  $("#nav").innerHTML=isA&&admin?'<button class="btn sec sm" id="ver">Ver web</button> <button class="btn sec sm" id="out">Cerrar sesión</button>':isA?'':"<a class=\"btn sec sm\" style=\"text-decoration:none\" href=\"#cuenta\">Mi cuenta</a> <a class=\"btn sec sm\" style=\"text-decoration:none\" href=\"#admin\">Admin</a> <span class=\"settings-wrap\"><button class=\"btn sec sm settings-toggle\" id=\"settingsToggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"settingsPanel\">⚙ Configuración</button><section class=\"settings-panel\" id=\"settingsPanel\" aria-label=\"Configuración visual\" hidden><div class=\"settings-panel-head\"><strong>Aspecto de NOVA ARCADE</strong><button type=\"button\" class=\"settings-close\" id=\"settingsClose\" aria-label=\"Cerrar configuración\">×</button></div><p>Elige el tema que prefieras. Se guardará en este dispositivo.</p><div class=\"theme-options\"><button type=\"button\" class=\"theme-option\" data-theme-choice=\"principal\"><span class=\"theme-preview theme-preview-principal\"></span><span><strong>Principal</strong><small>Emerald · Blue · Orange</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"neon\"><span class=\"theme-preview theme-preview-neon\"></span><span><strong>Neon Galaxy</strong><small>Violeta · Cian · Rosa</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"retro\"><span class=\"theme-preview theme-preview-retro\"></span><span><strong>Retro Arcade</strong><small>Carbón · Naranja · Dorado</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"light\"><span class=\"theme-preview theme-preview-light\"></span><span><strong>Light Mode</strong><small>Claro · Azul · Esmeralda</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button></div><button type=\"button\" class=\"settings-reset\" id=\"settingsReset\">Restablecer configuración</button></section></span>";
   $("#app").innerHTML=isA?(passwordRecoveryMode?passwordRecoveryView():(!adminChecked?authLoadingView():(admin?adminView():loginView()))):(catalogLoaded?pubView():catalogLoadingView());
   if(!isA)bindSettings();
   if(!isA || adminChecked || passwordRecoveryMode) bind(isA);
@@ -1246,7 +1263,15 @@ window.addEventListener("hashchange",function(){
   if(searchTimer!==null){clearTimeout(searchTimer);searchTimer=null;}
   render();
 });
-supabaseClient.auth.getSession().then(function(result){refreshAdminState(result.data.session)}).catch(function(){catalogLoaded=true;adminChecked=true;var app=document.getElementById("app");if(app)app.setAttribute("aria-busy","false");render()});
+withTimeout(supabaseClient.auth.getSession(),10000,"La sesión tardó demasiado en responder.")
+.then(function(result){return refreshAdminState(result.data.session);})
+.catch(function(error){
+  catalogLoadError=error&&error.message?error.message:"No se pudo iniciar la conexión.";
+  console.error("NOVA ARCADE startup failed:",error);
+  catalogLoaded=true;adminChecked=true;
+  var app=document.getElementById("app");if(app)app.setAttribute("aria-busy","false");
+  render();
+});
 supabaseClient.auth.onAuthStateChange(function(event,session){
   if(event==="PASSWORD_RECOVERY"){
     passwordRecoveryMode=true;
