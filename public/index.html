@@ -359,51 +359,78 @@ function gamePlayerView(){
  return '<div class="player-top"><a class="btn sec" href="#">← Volver</a><span class="tag">'+esc(g.cat)+'</span></div><div class="player-title"><div><h1>'+esc(g.name)+'</h1><p>'+esc(shortDescription(g.desc,150))+'</p></div><button type="button" class="btn sec" data-fav="'+esc(g.id)+'" aria-label="'+(isFavorite(g.id)?"Quitar "+esc(g.name)+" de favoritos":"Añadir "+esc(g.name)+" a favoritos")+'" aria-pressed="'+(isFavorite(g.id)?"true":"false")+'">'+(isFavorite(g.id)?"♥ Guardado":"♡ Favorito")+'</button></div><div class="game-frame-wrap"><iframe id="gameFrame" src="'+esc(safeUrl(g.url))+'" title="'+esc(g.name)+'" allow="autoplay; fullscreen; gamepad" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="player-controls"><button class="btn" id="fullScreen">⛶ Pantalla completa</button><button class="btn sec" id="reloadGame">↻ Recargar</button><a class="btn sec" target="_blank" rel="noopener noreferrer" href="'+esc(safeUrl(g.url))+'">Abrir en otra pestaña ↗</a><label class="game-volume-control" for="gameVolume"><span aria-hidden="true">🔊</span><span>Volumen</span><input id="gameVolume" type="range" min="0" max="100" step="5" value="100" aria-describedby="gameVolumeStatus"><output id="gameVolumeValue" for="gameVolume">100%</output></label></div><p class="player-note" id="gameVolumeStatus" role="status" aria-live="polite">El control de volumen está disponible en los juegos que permiten controlar su audio desde NOVA ARCADE.</p><p class="player-note">Algunos sitios bloquean la reproducción integrada. En ese caso, abre el juego en otra pestaña.</p>'+section("Más juegos de "+esc(g.cat),related);
 }
 function bindPlayer(){
- var frame=$("#gameFrame"),volume=$("#gameVolume"),volumeValue=$("#gameVolumeValue"),volumeStatus=$("#gameVolumeStatus"),mediaObserver=null,volumeSupported=false;
+ var frame=$("#gameFrame"),volume=$("#gameVolume"),volumeValue=$("#gameVolumeValue"),volumeStatus=$("#gameVolumeStatus"),mediaObserver=null,volumeSupported=false,currentVolume=volume?Number(volume.value)/100:1,frameLoaded=false;
+ function setVolumeStatus(message){if(volumeStatus)volumeStatus.textContent=message;}
+ function setVolumeAvailability(supported){
+  volumeSupported=supported;
+  if(volume)volume.disabled=!supported;
+  if(supported){
+   setVolumeStatus("Control de volumen activo para este juego.");
+  }else{
+   setVolumeStatus("Este juego no permite controlar el audio desde NOVA ARCADE porque está aislado por el navegador. Usa el control de sonido del propio juego o el mezclador de Windows.");
+  }
+ }
  function applyGameVolume(value){
-  if(!frame||!frame.contentDocument)return false;
+  if(!frame||!frameLoaded)return false;
   try{
-   var doc=frame.contentDocument,media=doc.querySelectorAll("audio,video");
-   media.forEach(function(element){element.volume=value;});
+   var doc=frame.contentDocument;
+   if(!doc||!doc.documentElement)return false;
+   var media=doc.querySelectorAll("audio,video");
+   media.forEach(function(element){
+    try{element.volume=value;}catch(error){}
+   });
    if(mediaObserver)mediaObserver.disconnect();
    var Observer=frame.contentWindow.MutationObserver;
    if(Observer){
     mediaObserver=new Observer(function(records){
-     records.forEach(function(record){record.addedNodes.forEach(function(node){
-      if(node.nodeType!==1)return;
-      if(node.matches&&node.matches("audio,video"))node.volume=value;
-      if(node.querySelectorAll)node.querySelectorAll("audio,video").forEach(function(element){element.volume=value;});
-     });});
+     records.forEach(function(record){
+      record.addedNodes.forEach(function(node){
+       if(node.nodeType!==1)return;
+       try{
+        if(node.matches&&node.matches("audio,video"))node.volume=currentVolume;
+        if(node.querySelectorAll)node.querySelectorAll("audio,video").forEach(function(element){element.volume=currentVolume;});
+       }catch(error){}
+      });
+     });
     });
-    mediaObserver.observe(doc.documentElement,{childList:true,subtree:true});
+    if(doc.documentElement)mediaObserver.observe(doc.documentElement,{childList:true,subtree:true});
    }
    return true;
-  }catch(error){return false;}
- }
- function updateVolumeAvailability(){
-  if(!volume||!volumeStatus)return;
-  volumeSupported=applyGameVolume(Number(volume.value)/100);
-  volume.disabled=!volumeSupported;
-  volumeStatus.textContent=volumeSupported
-   ?"Este juego permite controlar su audio desde NOVA ARCADE."
-   :"Este juego se carga desde otro dominio o no expone controles de audio. Usa el volumen del propio juego o el mezclador de Windows.";
+  }catch(error){
+   if(mediaObserver)mediaObserver.disconnect();
+   mediaObserver=null;
+   return false;
+  }
  }
  if(volume){
+  volume.disabled=true;
+  setVolumeStatus("Comprobando si este juego permite controlar el volumen…");
   volume.oninput=function(){
-   if(volumeValue)volumeValue.textContent=volume.value+"%";
-   if(volumeSupported&&!applyGameVolume(Number(volume.value)/100))updateVolumeAvailability();
+   currentVolume=Math.max(0,Math.min(1,Number(volume.value)/100));
+   if(volumeValue)volumeValue.textContent=Math.round(currentVolume*100)+"%";
+   if(volumeSupported&&!applyGameVolume(currentVolume))setVolumeAvailability(false);
   };
  }
  if(frame){
-  frame.addEventListener("load",function(){if(mediaObserver)mediaObserver.disconnect();updateVolumeAvailability();});
-  updateVolumeAvailability();
+  frame.addEventListener("load",function(){
+   if(mediaObserver)mediaObserver.disconnect();
+   mediaObserver=null;
+   frameLoaded=true;
+   setVolumeAvailability(applyGameVolume(currentVolume));
+  });
  }
  if($("#fullScreen"))$("#fullScreen").onclick=function(){if(frame&&frame.requestFullscreen)frame.requestFullscreen().catch(function(){});};
- if($("#reloadGame"))$("#reloadGame").onclick=function(){if(frame)frame.src=frame.src;};
+ if($("#reloadGame"))$("#reloadGame").onclick=function(){
+  if(!frame)return;
+  frameLoaded=false;
+  if(mediaObserver)mediaObserver.disconnect();
+  mediaObserver=null;
+  if(volume)volume.disabled=true;
+  setVolumeStatus("Recargando el juego y comprobando el control de volumen…");
+  frame.src=frame.src;
+ };
  document.querySelectorAll("[data-fav]").forEach(function(b){b.onclick=function(){toggleFavorite(b.dataset.fav);};});
 }
-
-/* ---------- Admin ---------- */
 function accountView(){
   if(adminSession&&adminSession.user){
     var accountEmail=esc(adminSession.user.email||"Cuenta autenticada");
