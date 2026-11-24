@@ -118,7 +118,7 @@ jobs:
         run: npx cap add android
       - name: Set embedded app version
         env:
-          APP_VERSION: ${{ env.RELEASE_VERSION }}
+          RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
         run: |
           node - <<'NODE'
           const fs = require("node:fs");
@@ -187,7 +187,7 @@ jobs:
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ github.ref_name }}
+          VERSION: ${{ env.RELEASE_VERSION }}
         run: |
           gh release create "$VERSION" NOVA-ARCADE-Android.apk NOVA-ARCADE-Android.apk.sha256 \
             --title "NOVA ARCADE $VERSION" \
