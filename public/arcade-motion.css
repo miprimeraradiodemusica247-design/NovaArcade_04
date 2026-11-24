@@ -890,3 +890,202 @@ body:has(#app > .player-title) .player-controls {
     justify-content: flex-start;
   }
 }
+
+
+/* NOVA ARCADE — Emerald / Electric Blue / Orange theme.
+   Public catalogue and player only: admin, account and auth remain untouched. */
+:where(body:has(#app > .hero), body:has(#app > .player-title)) {
+  --bg: #0b1015;
+  --card: #151d24;
+  --tx: #edf3f7;
+  --mut: #9aaab5;
+  --ac: #2388ff;
+  --ac2: #00c98d;
+  --bd: #2a3944;
+  --ok: #00c98d;
+  --bad: #fb7185;
+  --na-orange: #ff8a24;
+  color-scheme: dark;
+}
+
+body:has(#app > .hero),
+body:has(#app > .player-title) {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 8% 0%, rgb(35 136 255 / 11%), transparent 36rem),
+    radial-gradient(ellipse at 92% 16%, rgb(0 201 141 / 8%), transparent 32rem),
+    linear-gradient(180deg, #0b1015 0%, #0d1319 58%, #0a0f14 100%);
+  color: var(--tx);
+}
+
+body:has(#app > .hero) header,
+body:has(#app > .player-title) header {
+  background: rgb(11 16 21 / 88%);
+  border-bottom: 1px solid rgb(42 57 68 / 85%);
+  box-shadow: 0 8px 26px rgb(0 0 0 / 22%);
+}
+
+body:has(#app > .hero) .logo,
+body:has(#app > .player-title) .logo {
+  background-image: linear-gradient(100deg, #42a0ff 0%, #00c98d 58%, #ff9b3d 100%);
+  filter: drop-shadow(0 2px 12px rgb(35 136 255 / 15%));
+}
+
+body:has(#app > .hero) .hero::before {
+  background: radial-gradient(circle, rgb(35 136 255 / 13%), rgb(0 201 141 / 5%) 54%, transparent 74%);
+}
+
+body:has(#app > .hero) .hero h1 {
+  text-shadow: 0 8px 30px rgb(35 136 255 / 10%);
+}
+
+body:has(#app > .hero) .eyebrow,
+body:has(#app > .hero) .seo-category-links a {
+  color: #8fc4ff;
+}
+
+body:has(#app > .hero) .hero-stats span,
+body:has(#app > .hero) .main-search,
+body:has(#app > .hero) .player-controls {
+  border-color: var(--bd);
+  background: rgb(21 29 36 / 90%);
+}
+
+body:has(#app > .hero) .main-search input,
+body:has(#app > .hero) .main-search select {
+  border-color: #344652;
+  background: #0e151b;
+  color: var(--tx);
+}
+
+body:has(#app > .hero) input:focus,
+body:has(#app > .hero) select:focus,
+body:has(#app > .hero) textarea:focus {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 3px rgb(35 136 255 / 17%);
+}
+
+body:has(#app > .hero) .card,
+body:has(#app > .hero) .seo-home-guide article,
+body:has(#app > .hero) .related-item,
+body:has(#app > .player-title) .related-item {
+  border-color: #2a3944;
+  background: linear-gradient(155deg, #18232b 0%, #141c23 72%);
+  box-shadow: 0 9px 26px rgb(0 0 0 / 22%);
+}
+
+body:has(#app > .hero) .card .b {
+  background: linear-gradient(180deg, #18232b 0%, #141c23 100%);
+}
+
+body:has(#app > .hero) .cover {
+  background:
+    radial-gradient(circle at 18% 10%, rgb(35 136 255 / 18%), transparent 48%),
+    linear-gradient(135deg, rgb(0 201 141 / 13%), rgb(255 138 36 / 8%));
+}
+
+body:has(#app > .hero) .btn,
+body:has(#app > .hero) .quick-categories button,
+body:has(#app > .hero) .tabs button,
+body:has(#app > .player-title) .player-controls .btn {
+  border-color: #344652;
+}
+
+body:has(#app > .hero) .btn:not(.sec),
+body:has(#app > .hero) .quick-categories button[aria-pressed="true"] {
+  border-color: transparent;
+  background: linear-gradient(110deg, #1678ed, #168fba);
+  color: #fff;
+}
+
+body:has(#app > .hero) .btn.sec,
+body:has(#app > .hero) .tabs button,
+body:has(#app > .hero) .quick-categories button {
+  background: #17222a;
+  color: #dce7ed;
+}
+
+body:has(#app > .hero) .game-section:nth-of-type(2) .eyebrow,
+body:has(#app > .hero) .game-section:nth-of-type(2) .section-kicker {
+  color: #45d9aa;
+}
+
+body:has(#app > .hero) .game-section:nth-of-type(3) .eyebrow,
+body:has(#app > .hero) .game-section:nth-of-type(3) .section-kicker {
+  color: #ffad62;
+}
+
+body:has(#app > .hero) .category-menu-toggle {
+  border-color: #344652;
+  background: rgb(21 29 36 / 96%);
+  color: var(--tx);
+}
+
+body:has(#app > .hero) .category-menu-toggle:hover {
+  border-color: var(--ac);
+  background: #1a2b38;
+}
+
+body:has(#app > .hero) .category-drawer {
+  border-right-color: #344652;
+  background: linear-gradient(160deg, #17232b 0%, #0d141a 62%, #111b20 100%);
+}
+
+body:has(#app > .hero) .category-drawer .seo-category-links a {
+  border-color: #2c3b45;
+  background: #17222a;
+  color: #c9e3f4;
+}
+
+body:has(#app > .hero) .category-drawer .seo-category-links a:hover,
+body:has(#app > .hero) .category-drawer .seo-category-links a:focus-visible {
+  border-color: var(--ac);
+  background: rgb(35 136 255 / 12%);
+}
+
+body:has(#app > .player-title) .player-title {
+  border-color: #30424d;
+  background: linear-gradient(115deg, #17232b 0%, #14202a 68%, #17251f 100%);
+}
+
+body:has(#app > .player-title) .game-frame-wrap {
+  border-color: #344652;
+  background: #080d11;
+  box-shadow: 0 22px 54px rgb(0 0 0 / 38%), 0 0 0 4px rgb(35 136 255 / 5%);
+}
+
+body:has(#app > .player-title) .game-volume-control {
+  border-color: #344652;
+  background: #17222a;
+}
+
+body:has(#app > .player-title) .game-volume-control input[type="range"] {
+  accent-color: var(--ac2);
+}
+
+body:has(#app > .hero) footer {
+  border-top-color: #263640;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  body:has(#app > .hero) .card:hover,
+  body:has(#app > .hero) .seo-home-guide article:hover {
+    border-color: rgb(35 136 255 / 65%);
+    box-shadow: 0 16px 38px rgb(0 0 0 / 28%);
+  }
+
+  body:has(#app > .hero) .quick-categories button:hover {
+    border-color: var(--ac2);
+  }
+
+  body:has(#app > .hero) .category-drawer .seo-category-links a:hover {
+    border-color: var(--ac2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(#app > .hero) *,
+  body:has(#app > .player-title) * {
+    scroll-behavior: auto;
+  }
+}
