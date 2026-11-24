@@ -17,7 +17,7 @@ Never commit the keystore or its passwords to this repository.
 
 1. Increase `version` in `package.json` (semantic version, for example `1.0.5`).
 2. Commit and push to `main`.
-3. Create and push a matching tag, for example `v1.0.5`.
+3. Open **Actions → Build NOVA ARCADE Android → Run workflow** and select `main`. (Alternatively, push a matching tag such as `v1.0.5`.)
 4. GitHub Actions builds a signed APK and publishes it as a GitHub Release.
 5. The Android app checks the latest public release and displays a download prompt when a newer APK exists.
 
