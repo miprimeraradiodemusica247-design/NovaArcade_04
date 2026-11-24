@@ -8,5 +8,8 @@
     "allowNavigation": [
       "novaarcade04.vercel.app"
     ]
+  },
+  "android": {
+    "allowMixedContent": false
   }
 }
