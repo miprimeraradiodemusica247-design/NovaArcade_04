@@ -116,16 +116,15 @@ jobs:
         env:
           APP_VERSION: ${{ github.ref_name }}
         run: |
-          VERSION="${APP_VERSION#v}"
           node - <<'NODE'
           const fs = require("node:fs");
           const configPath = "capacitor.config.json";
           const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
           const url = new URL(config.server.url);
           url.searchParams.set("nova_android", "1");
-          url.searchParams.set("app_version", process.env.VERSION);
+          url.searchParams.set("app_version", process.env.APP_VERSION.replace(/^v/, ""));
           config.server.url = url.toString();
-          fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\\n");
+          fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
           NODE
       - name: Synchronize Capacitor project
         run: npx cap sync android
