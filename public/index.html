@@ -232,7 +232,7 @@ var supabaseClient=window.supabase.createClient(
 var logs=ld("na_log",[]);
 var admin=false,tab="resumen",q="",fc="",aq="",sortMode="popular",onlyFavorites=false;
 var adminCategory="",adminStatus="all",adminSort="order",selectedGameIds=[];
-var publicPage=1,adminPage=1,importBusy=false,bulkDeleteBusy=false,searchTimer=null;
+var publicPage=1,adminPage=1,importBusy=false,bulkDeleteBusy=false,searchTimer=null,publicLoadObserver=null;
 var PUBLIC_PAGE_SIZE=48,ADMIN_PAGE_SIZE=50,IMPORT_BATCH_SIZE=50;
 var favorites=ld("na_favorites",[]),recentGames=ld("na_recent",[]);
 function save(){if(games.length<=200)sv("na_games",games);sv("na_cfg",cfg);sv("na_log",logs)}
@@ -375,16 +375,35 @@ function pubView(){
  if(sortMode==="za")list.sort(function(a,b){return b.name.localeCompare(a.name,"es");});
  if(sortMode==="featured")list.sort(function(a,b){return Number(!!b.feat)-Number(!!a.feat);});
  if(sortMode==="newest")list.sort(function(a,b){var dateA=Date.parse(a.created_at||"")||0,dateB=Date.parse(b.created_at||"")||0;return dateB-dateA||(Number(b.sort_order)||0)-(Number(a.sort_order)||0);});
- var totalPages=Math.max(1,Math.ceil(list.length/PUBLIC_PAGE_SIZE));
- if(publicPage>totalPages)publicPage=totalPages;
- var pageItems=list.slice((publicPage-1)*PUBLIC_PAGE_SIZE,publicPage*PUBLIC_PAGE_SIZE);
- var pager=list.length>PUBLIC_PAGE_SIZE?'<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:22px 0"><button class="btn sec sm" id="publicPrev"'+(publicPage<=1?' disabled':'')+'>← Anterior</button><span>Página '+publicPage+' de '+totalPages+' · '+list.length+' juegos</span><button class="btn sec sm" id="publicNext"'+(publicPage>=totalPages?' disabled':'')+'>Siguiente →</button></div>':"";
+ var maxVisible=Math.min(list.length,publicPage*PUBLIC_PAGE_SIZE);
+ var pageItems=list.slice(0,maxVisible);
+ var hasMore=maxVisible<list.length;
+ var pager=hasMore?'<div class="infinite-load" id="publicLoadSentinel"><p>Mostrando '+maxVisible+' de '+list.length+' juegos</p><button class="btn sec sm" id="publicLoadMore" type="button">Cargar más juegos</button></div>':'<p class="infinite-end" role="status">Has llegado al final · '+list.length+' juegos</p>';
  var opts=CATS.map(function(c){return '<option value="'+esc(c)+'"'+(c===fc?' selected':'')+'>'+esc(c)+'</option>';}).join("");
  return (catalogLoadError?'<div class="panel" role="status" style="max-width:none;margin:12px 0;border-color:var(--bad)"><strong>No se pudo actualizar el catálogo.</strong><p class="note">'+esc(catalogLoadError)+'</p><a class="btn sec" href="/">Reintentar carga</a></div>':'')+'<section class="hero"><span class="eyebrow">TU UNIVERSO DE JUEGOS</span><h1>Juegos online gratis para jugar al instante.</h1><p>Descubre juegos online gratis: juegos de acción, disparos, coches, carreras, aventuras, deportes y mucho más. Explora el catálogo, encuentra juegos para navegador y empieza a jugar.</p><div class="hero-stats"><span>🎮 '+vis.length+' juegos</span><span>⚡ Sin descargas</span><span>♥ Favoritos</span></div></section>'+
  '<div class="bar main-search"><input id="s" type="search" aria-label="Buscar juegos" placeholder="Buscar juegos…" value="'+esc(q)+'"><select id="c" aria-label="Filtrar juegos por categoría"><option value="">Todas las categorías</option>'+opts+'</select><select id="sort" aria-label="Ordenar juegos"><option value="popular"'+(sortMode==="popular"?" selected":"")+'>Recomendados</option><option value="az"'+(sortMode==="az"?" selected":"")+'>Nombre A-Z</option><option value="za"'+(sortMode==="za"?" selected":"")+'>Nombre Z-A</option><option value="featured"'+(sortMode==="featured"?" selected":"")+' >Destacados primero</option><option value="newest"'+(sortMode==="newest"?" selected":"")+' >Novedades</option></select><button class="btn sec" id="favFilter">'+(onlyFavorites?"♥ Todos":"♡ Favoritos")+'</button><button class="btn sec" id="randomGame">🎲 Juego aleatorio</button><button class="btn sec" id="clearFilters">Limpiar filtros</button></div>'+
  '<nav class="quick-categories" aria-label="Accesos rápidos a categorías">'+CATS.slice(0,12).map(function(category){return '<button type="button" data-category="'+esc(category)+'" aria-pressed="'+(fc===category?"true":"false")+'">'+esc(category)+'</button>';}).join("")+'</nav>'+
  (!q&&!fc&&!onlyFavorites?section("⭐ Destacados",feat)+section("🆕 Recién añadidos",vis.slice().sort(function(a,b){return (Date.parse(b.created_at||"")||0)-(Date.parse(a.created_at||"")||0);}).slice(0,8))+section("🕹️ Seguir jugando",recent)+section("♥ Tus favoritos",favs):"")+
  '<section class="game-section"><h2>'+(onlyFavorites?"Tus favoritos":"Explorar juegos")+'</h2>'+(pageItems.length?'<div class="grid">'+pageItems.map(card).join("")+'</div>':'<div class="empty">'+(vis.length===0?'Todavía no hay juegos publicados.':'No encontramos juegos con esos filtros.')+'</div>')+pager+'</section>';
+}
+function bindPublicInfiniteScroll(){
+  if(publicLoadObserver){publicLoadObserver.disconnect();publicLoadObserver=null;}
+  var sentinel=$("#publicLoadSentinel");
+  var loadButton=$("#publicLoadMore");
+  if(!sentinel)return;
+  var loadNext=function(){
+    if(!sentinel.isConnected||loadButton&&loadButton.disabled)return;
+    if(loadButton){loadButton.disabled=true;loadButton.textContent="Cargando…";}
+    publicPage++;
+    render();
+  };
+  if(loadButton)loadButton.onclick=loadNext;
+  if("IntersectionObserver" in window){
+    publicLoadObserver=new IntersectionObserver(function(entries){
+      if(entries.some(function(entry){return entry.isIntersecting;}))loadNext();
+    },{root:null,rootMargin:"500px 0px",threshold:0});
+    publicLoadObserver.observe(sentinel);
+  }
 }
 function gamePlayerView(){
  var id=decodeURIComponent(location.hash.slice(6));
@@ -1110,8 +1129,7 @@ function bind(isA){
     if($("#favFilter"))$("#favFilter").onclick=function(){onlyFavorites=!onlyFavorites;publicPage=1;render()};
     if($("#randomGame"))$("#randomGame").onclick=function(){var pool=games.filter(function(g){return g.pub;});if(pool.length)location.hash="#play/"+encodeURIComponent(pool[Math.floor(Math.random()*pool.length)].id);};
     if($("#clearFilters"))$("#clearFilters").onclick=function(){q="";fc="";onlyFavorites=false;sortMode="popular";publicPage=1;render();};
-    if($("#publicPrev"))$("#publicPrev").onclick=function(){publicPage=Math.max(1,publicPage-1);render()};
-    if($("#publicNext"))$("#publicNext").onclick=function(){publicPage++;render()};
+    bindPublicInfiniteScroll();
     document.querySelectorAll("[data-fav]").forEach(function(b){b.onclick=function(){toggleFavorite(b.dataset.fav);};});return;
   }
   if(!admin){
