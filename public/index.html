@@ -1315,31 +1315,68 @@ if ("serviceWorker" in navigator) {
 <script>
 (function () {
   "use strict";
+
   var params = new URLSearchParams(window.location.search);
-  var isNativeApp = params.get("nova_android") === "1" || /(?:; wv\)|Capacitor)/i.test(navigator.userAgent);
+  var isNativeApp = params.get("nova_android") === "1" || /(?:; wv\\)|Capacitor)/i.test(navigator.userAgent);
   if (!isNativeApp) return;
 
-  var currentVersion = params.get("app_version") || "1.0.3";
+  var currentVersion = params.get("app_version") || "1.0.4";
   var releaseApi = "https://api.github.com/repos/miprimeraradiodemusica247-design/NovaArcade_04/releases/latest";
+  var checkButton;
+  var checking = false;
 
   function compareVersions(a, b) {
-    var left = String(a).replace(/^v/i, "").split(".").map(Number);
-    var right = String(b).replace(/^v/i, "").split(".").map(Number);
+    function parts(value) {
+      return String(value).trim().replace(/^v/i, "").split(/[+-]/, 1)[0].split(".").map(function (part) {
+        var number = Number(part);
+        return Number.isSafeInteger(number) && number >= 0 ? number : 0;
+      });
+    }
+    var left = parts(a);
+    var right = parts(b);
     for (var i = 0; i < 3; i++) {
-      var x = Number.isFinite(left[i]) ? left[i] : 0;
-      var y = Number.isFinite(right[i]) ? right[i] : 0;
+      var x = left[i] || 0;
+      var y = right[i] || 0;
       if (x !== y) return x > y ? 1 : -1;
     }
     return 0;
   }
 
+  function closePanel() {
+    var current = document.getElementById("nova-android-update");
+    if (current) current.remove();
+  }
+
+  function showMessage(titleText, messageText) {
+    closePanel();
+    var panel = document.createElement("section");
+    panel.id = "nova-android-update";
+    panel.setAttribute("role", "status");
+    panel.setAttribute("aria-live", "polite");
+    panel.style.cssText = "position:fixed;z-index:2147483000;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;padding:16px;border:1px solid rgba(0,201,141,.55);border-radius:16px;background:#101a20;color:#fff;box-shadow:0 16px 48px rgba(0,0,0,.45);font:500 14px/1.5 system-ui,sans-serif";
+    var title = document.createElement("strong");
+    title.textContent = titleText;
+    title.style.cssText = "display:block;font-size:15px;margin-bottom:5px";
+    var message = document.createElement("p");
+    message.textContent = messageText;
+    message.style.cssText = "margin:0;color:#d4e2e8";
+    var close = document.createElement("button");
+    close.type = "button";
+    close.textContent = "Cerrar";
+    close.style.cssText = "margin-top:12px;padding:8px 12px;border:1px solid #53636b;border-radius:10px;background:transparent;color:#fff;font:inherit";
+    close.addEventListener("click", closePanel);
+    panel.append(title, message, close);
+    document.body.appendChild(panel);
+  }
+
   function showUpdate(release, apk) {
-    if (document.getElementById("nova-android-update")) return;
+    closePanel();
     var panel = document.createElement("section");
     panel.id = "nova-android-update";
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-live", "polite");
-    panel.style.cssText = "position:fixed;z-index:2147483000;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;padding:18px;border:1px solid rgba(0,201,141,.55);border-radius:18px;background:#101a20;color:#fff;box-shadow:0 16px 48px rgba(0,0,0,.45);font:500 14px/1.5 system-ui,sans-serif";
+    panel.setAttribute("aria-label", "Actualización disponible");
+    panel.style.cssText = "position:fixed;z-index:2147483000;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;padding:18px;border:1px solid rgba(0,201,141,.55);border-radius:18px;background:#101a20;color:#fff;box-shadow:0 16px 48px rgba(0,0,0,.45);font:500 14px/1.5 system-ui,sans-serif";
     var title = document.createElement("strong");
     title.textContent = "Actualización disponible · NOVA ARCADE " + release.tag_name;
     title.style.cssText = "display:block;font-size:16px;margin-bottom:6px";
@@ -1358,34 +1395,99 @@ if ("serviceWorker" in navigator) {
     close.type = "button";
     close.textContent = "Ahora no";
     close.style.cssText = "padding:10px 13px;border:1px solid #53636b;border-radius:11px;background:transparent;color:#fff;font:inherit";
-    close.addEventListener("click", function () { panel.remove(); });
+    close.addEventListener("click", closePanel);
     actions.append(link, close);
     panel.append(title, message, actions);
     document.body.appendChild(panel);
   }
 
-  var controller = new AbortController();
-  var timeout = window.setTimeout(function () { controller.abort(); }, 9000);
-  fetch(releaseApi, {
-    headers: { "Accept": "application/vnd.github+json" },
-    cache: "no-store",
-    signal: controller.signal
-  }).then(function (response) {
-    if (!response.ok) throw new Error("No se pudo consultar la versión publicada.");
-    return response.json();
-  }).then(function (release) {
-    if (!release || release.draft || release.prerelease || !release.tag_name) return;
-    var latest = release.tag_name.replace(/^v/i, "");
-    if (compareVersions(latest, currentVersion) <= 0) return;
-    var apk = (release.assets || []).find(function (asset) {
-      return asset.name === "NOVA-ARCADE-Android.apk" && asset.browser_download_url;
+  function getApkAsset(release) {
+    var assets = Array.isArray(release.assets) ? release.assets : [];
+    return assets.find(function (asset) {
+      if (!asset || asset.name !== "NOVA-ARCADE-Android.apk" || typeof asset.browser_download_url !== "string") return false;
+      try {
+        var url = new URL(asset.browser_download_url);
+        return url.protocol === "https:" && (url.hostname === "github.com" || url.hostname.endsWith(".githubusercontent.com"));
+      } catch (_) {
+        return false;
+      }
     });
-    if (apk) showUpdate(release, apk);
-  }).catch(function (error) {
-    console.info("NOVA ARCADE: comprobación de actualizaciones no disponible.", error);
-  }).finally(function () {
-    window.clearTimeout(timeout);
-  });
+  }
+
+  async function checkForUpdates(showUpToDateMessage) {
+    if (checking) return;
+    checking = true;
+    if (checkButton) {
+      checkButton.disabled = true;
+      checkButton.textContent = "Comprobando…";
+      checkButton.setAttribute("aria-busy", "true");
+    }
+
+    var controller = new AbortController();
+    var timeout = window.setTimeout(function () { controller.abort(); }, 10000);
+    try {
+      var response = await fetch(releaseApi, {
+        headers: { "Accept": "application/vnd.github+json" },
+        cache: "no-store",
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error(response.status === 403 ? "GitHub ha limitado temporalmente las consultas. Inténtalo más tarde." : "No se pudo consultar la versión publicada.");
+      var release = await response.json();
+      if (!release || release.draft || release.prerelease || !release.tag_name) {
+        throw new Error("No se encontró una versión estable publicada.");
+      }
+
+      var latest = release.tag_name.replace(/^v/i, "");
+      if (compareVersions(latest, currentVersion) <= 0) {
+        if (showUpToDateMessage) showMessage("NOVA ARCADE está actualizada", "Ya tienes instalada la última versión (" + currentVersion + ").");
+        return;
+      }
+
+      var apk = getApkAsset(release);
+      if (!apk) {
+        showMessage("Nueva versión detectada", "La versión " + release.tag_name + " está publicada, pero todavía no encontramos el archivo APK. Vuelve a intentarlo más tarde.");
+        return;
+      }
+      showUpdate(release, apk);
+    } catch (error) {
+      if (showUpToDateMessage) {
+        var message = error && error.name === "AbortError"
+          ? "La consulta ha tardado demasiado. Comprueba tu conexión e inténtalo de nuevo."
+          : (error && error.message ? error.message : "No se pudo comprobar si hay actualizaciones.");
+        showMessage("No se pudo comprobar", message);
+      }
+      console.info("NOVA ARCADE: comprobación de actualizaciones no disponible.", error);
+    } finally {
+      window.clearTimeout(timeout);
+      checking = false;
+      if (checkButton) {
+        checkButton.disabled = false;
+        checkButton.textContent = "↻ Buscar actualizaciones";
+        checkButton.removeAttribute("aria-busy");
+      }
+    }
+  }
+
+  function addUpdateButton() {
+    if (document.getElementById("nova-check-updates")) return;
+    checkButton = document.createElement("button");
+    checkButton.id = "nova-check-updates";
+    checkButton.type = "button";
+    checkButton.textContent = "↻ Buscar actualizaciones";
+    checkButton.setAttribute("aria-label", "Buscar actualizaciones de NOVA ARCADE");
+    checkButton.style.cssText = "position:fixed;z-index:1000;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));max-width:calc(100vw - 28px);padding:10px 14px;border:1px solid rgba(0,201,141,.65);border-radius:999px;background:#101a20;color:#fff;box-shadow:0 5px 20px rgba(0,0,0,.3);font:700 13px/1.2 system-ui,sans-serif;cursor:pointer";
+    checkButton.addEventListener("click", function () { checkForUpdates(true); });
+    document.body.appendChild(checkButton);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", addUpdateButton, { once: true });
+  } else {
+    addUpdateButton();
+  }
+
+  // Comprobación inicial no intrusiva: solo muestra algo si hay una versión nueva.
+  checkForUpdates(false);
 })();
 </script>
 
