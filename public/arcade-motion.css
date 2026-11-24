@@ -637,3 +637,188 @@ body.category-menu-open {
   body:has(#app > .hero) .category-drawer { animation: none !important; }
   body:has(#app > .hero) .category-drawer .seo-category-links a { transition: none !important; }
 }
+
+
+/* Visual refinement for the public catalogue and game player only.
+   Admin, account and authentication views are intentionally excluded. */
+body:has(#app > .hero) {
+  background:
+    radial-gradient(ellipse at 12% 0%, rgb(99 102 241 / 13%), transparent 38rem),
+    radial-gradient(ellipse at 92% 18%, rgb(34 211 238 / 9%), transparent 34rem),
+    var(--bg);
+}
+
+body:has(#app > .hero) header,
+body:has(#app > .player-title) header {
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--bd) 70%, #8b5cf6 30%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 14%);
+  -webkit-backdrop-filter: blur(16px) saturate(135%);
+  backdrop-filter: blur(16px) saturate(135%);
+}
+
+body:has(#app > .hero) .logo,
+body:has(#app > .player-title) .logo {
+  background-image: linear-gradient(100deg, #c4b5fd 0%, #67e8f9 52%, #a5b4fc 100%);
+}
+
+body:has(#app > .hero) .hero {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(36px, 6vw, 76px) 0 30px;
+}
+
+body:has(#app > .hero) .hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: min(46vw, 440px);
+  aspect-ratio: 1;
+  right: 2%;
+  top: 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(99 102 241 / 18%), rgb(34 211 238 / 5%) 52%, transparent 72%);
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+body:has(#app > .hero) .hero h1 {
+  max-width: 820px;
+  text-wrap: balance;
+  letter-spacing: -.045em;
+  text-shadow: 0 8px 34px rgb(99 102 241 / 13%);
+}
+
+body:has(#app > .hero) .hero p {
+  max-width: 650px;
+  line-height: 1.7;
+}
+
+body:has(#app > .hero) .hero-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--bd) 75%, #8b5cf6 25%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 78%, transparent);
+}
+
+body:has(#app > .hero) .main-search {
+  border-color: color-mix(in srgb, var(--bd) 65%, #8b5cf6 35%);
+  background: color-mix(in srgb, var(--card) 86%, transparent);
+  box-shadow: 0 12px 34px rgb(0 0 0 / 17%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+body:has(#app > .hero) .main-search input,
+body:has(#app > .hero) .main-search select {
+  min-height: 42px;
+  border-color: color-mix(in srgb, var(--bd) 78%, #8b5cf6 22%);
+  background: color-mix(in srgb, var(--bg) 78%, var(--card));
+}
+
+body:has(#app > .hero) .game-section h2 {
+  letter-spacing: -.025em;
+}
+
+body:has(#app > .hero) .card {
+  border-color: color-mix(in srgb, var(--bd) 76%, #8b5cf6 24%);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--card) 96%, #8b5cf6 4%), var(--card) 70%);
+  box-shadow: 0 8px 26px rgb(0 0 0 / 16%);
+}
+
+body:has(#app > .hero) .cover {
+  background:
+    radial-gradient(circle at 15% 10%, rgb(34 211 238 / 18%), transparent 48%),
+    linear-gradient(135deg, rgb(99 102 241 / 18%), rgb(139 92 246 / 9%));
+}
+
+body:has(#app > .hero) .cover img {
+  transition: transform 360ms cubic-bezier(.2,.75,.25,1), filter 360ms ease;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  body:has(#app > .hero) .card:hover .cover img {
+    transform: scale(1.055);
+    filter: saturate(1.08);
+  }
+}
+
+body:has(#app > .hero) .card .b {
+  gap: 8px;
+  padding: 14px;
+}
+
+body:has(#app > .hero) .card h3 {
+  letter-spacing: -.015em;
+}
+
+body:has(#app > .hero) .player-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 18px;
+}
+
+body:has(#app > .player-title) .player-title {
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--bd) 70%, #8b5cf6 30%);
+  border-radius: 18px;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--card) 92%, #8b5cf6 8%), color-mix(in srgb, var(--card) 96%, #22d3ee 4%));
+  box-shadow: 0 10px 30px rgb(0 0 0 / 16%);
+}
+
+body:has(#app > .player-title) .player-title h1 {
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+
+body:has(#app > .player-title) .game-frame-wrap {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, var(--bd) 58%, #8b5cf6 42%);
+  border-radius: 20px;
+  background: #050817;
+  box-shadow: 0 22px 58px rgb(0 0 0 / 34%), 0 0 0 5px rgb(139 92 246 / 5%);
+}
+
+body:has(#app > .player-title) .game-frame-wrap iframe {
+  display: block;
+  background: #050817;
+}
+
+body:has(#app > .player-title) .player-controls {
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+}
+
+body:has(#app > .player-title) .player-controls .btn {
+  min-height: 40px;
+}
+
+body:has(#app > .player-title) .player-note {
+  padding: 0 4px;
+  line-height: 1.65;
+}
+
+body:has(#app > .hero) .seo-home-guide article {
+  border-radius: 16px;
+}
+
+@media (max-width: 700px) {
+  body:has(#app > .hero) .hero::before { width: 70vw; right: -18%; top: 12%; }
+  body:has(#app > .player-title) .player-title { padding: 14px; border-radius: 14px; }
+  body:has(#app > .player-title) .game-frame-wrap { border-radius: 13px; }
+  body:has(#app > .player-title) .player-controls { gap: 7px; padding: 9px; }
+  body:has(#app > .player-title) .player-controls .btn { flex: 1 1 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(#app > .hero) .cover img { transition: none !important; }
+}
