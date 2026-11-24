@@ -1106,3 +1106,150 @@ body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) 
 body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .main-search input,
 body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .main-search select { background:#fff;color:#172536;border-color:#d8e2ec; }
 body[data-nova-theme="light"]:is(:has(#app > .hero),:has(#app > .player-title)) .player-title { background:linear-gradient(120deg,#fff,#edf5ff);border-color:#d8e2ec; }
+
+
+/* NOVA ARCADE — theme-consistent visual polish (public views only).
+   Uses active theme tokens instead of fixed palette values. */
+body:where(:has(#app > .hero), :has(#app > .player-title)) {
+  color: var(--tx);
+}
+
+body:has(#app > .hero) .hero::before {
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--ac) 22%, transparent),
+    color-mix(in srgb, var(--ac2) 9%, transparent) 54%,
+    transparent 74%);
+}
+
+body:has(#app > .hero) .hero-stats span {
+  border-color: color-mix(in srgb, var(--bd) 68%, var(--ac) 32%);
+}
+
+body:has(#app > .hero) .main-search {
+  border-color: color-mix(in srgb, var(--bd) 65%, var(--ac) 35%);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+}
+
+body:has(#app > .hero) .main-search input,
+body:has(#app > .hero) .main-search select {
+  border-color: var(--bd);
+  background: color-mix(in srgb, var(--bg) 72%, var(--card));
+  color: var(--tx);
+}
+
+body:has(#app > .hero) .card,
+body:has(#app > .hero) .seo-home-guide article,
+body:has(#app > .hero) .related-item,
+body:has(#app > .player-title) .related-item {
+  border-color: color-mix(in srgb, var(--bd) 72%, var(--ac) 28%);
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--card) 94%, var(--ac) 6%),
+    var(--card) 76%);
+}
+
+body:has(#app > .hero) .card .b {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--card) 94%, var(--ac) 6%),
+    var(--card));
+}
+
+body:has(#app > .hero) .cover {
+  background:
+    radial-gradient(circle at 18% 10%, color-mix(in srgb, var(--ac2) 18%, transparent), transparent 48%),
+    linear-gradient(135deg, color-mix(in srgb, var(--ac) 18%, transparent), color-mix(in srgb, var(--na-orange, var(--ac2)) 10%, transparent));
+}
+
+body:has(#app > .hero) .eyebrow,
+body:has(#app > .hero) .seo-category-links a {
+  color: color-mix(in srgb, var(--ac2) 58%, var(--tx));
+}
+
+body:has(#app > .hero) .btn:not(.sec),
+body:has(#app > .hero) .quick-categories button[aria-pressed="true"] {
+  border-color: transparent;
+  background: linear-gradient(110deg, var(--ac), color-mix(in srgb, var(--ac) 45%, var(--ac2)));
+  color: #fff;
+}
+
+body:has(#app > .hero) .btn.sec,
+body:has(#app > .hero) .tabs button,
+body:has(#app > .hero) .quick-categories button {
+  border-color: var(--bd);
+  background: color-mix(in srgb, var(--card) 88%, var(--bg));
+  color: var(--tx);
+}
+
+body:has(#app > .hero) .btn.sec:hover,
+body:has(#app > .hero) .tabs button:hover,
+body:has(#app > .hero) .quick-categories button:hover {
+  border-color: var(--ac);
+}
+
+body:has(#app > .hero) .category-menu-toggle {
+  border-color: color-mix(in srgb, var(--bd) 65%, var(--ac) 35%);
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  color: var(--tx);
+}
+
+body:has(#app > .hero) .category-drawer {
+  border-right-color: var(--bd);
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--card) 92%, var(--ac) 8%),
+    var(--bg) 68%);
+}
+
+body:has(#app > .hero) .category-drawer h2,
+body:has(#app > .hero) .category-drawer .category-menu-close {
+  color: var(--tx);
+}
+
+body:has(#app > .hero) .category-drawer p {
+  color: var(--mut);
+}
+
+body:has(#app > .hero) .category-drawer .seo-category-links a {
+  border-color: var(--bd);
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  color: var(--tx);
+}
+
+body:has(#app > .hero) .category-drawer .seo-category-links a:hover,
+body:has(#app > .hero) .category-drawer .seo-category-links a:focus-visible {
+  border-color: var(--ac);
+  background: color-mix(in srgb, var(--ac) 14%, var(--card));
+}
+
+body:has(#app > .player-title) .player-title {
+  border-color: color-mix(in srgb, var(--bd) 65%, var(--ac) 35%);
+  background: linear-gradient(115deg,
+    color-mix(in srgb, var(--card) 92%, var(--ac) 8%),
+    color-mix(in srgb, var(--card) 95%, var(--ac2) 5%));
+}
+
+body:has(#app > .player-title) .game-frame-wrap {
+  border-color: color-mix(in srgb, var(--bd) 60%, var(--ac) 40%);
+  box-shadow: 0 22px 54px rgb(0 0 0 / 28%),
+    0 0 0 4px color-mix(in srgb, var(--ac) 7%, transparent);
+}
+
+body:has(#app > .hero) .settings-panel,
+body:has(#app > .player-title) .settings-panel {
+  border-color: var(--bd);
+  background: var(--card);
+  color: var(--tx);
+}
+
+body[data-nova-theme="light"]:is(:has(#app > .hero), :has(#app > .player-title)) header {
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+}
+
+body[data-nova-theme="light"]:is(:has(#app > .hero), :has(#app > .player-title)) .btn:not(.sec),
+body[data-nova-theme="light"]:is(:has(#app > .hero), :has(#app > .player-title)) .quick-categories button[aria-pressed="true"] {
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(#app > .hero) .hero::before {
+    filter: none;
+  }
+}
