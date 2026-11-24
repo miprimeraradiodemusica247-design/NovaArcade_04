@@ -356,81 +356,22 @@ function gamePlayerView(){
  if(!g)return '<div class="empty">Juego no disponible. <a href="#">Volver</a></div>';
  rememberGame(g.id);
  var related=games.filter(function(x){return x.pub&&x.id!==g.id&&x.cat===g.cat;}).slice(0,4);
- return '<div class="player-top"><a class="btn sec" href="#">← Volver</a><span class="tag">'+esc(g.cat)+'</span></div><div class="player-title"><div><h1>'+esc(g.name)+'</h1><p>'+esc(shortDescription(g.desc,150))+'</p></div><button type="button" class="btn sec" data-fav="'+esc(g.id)+'" aria-label="'+(isFavorite(g.id)?"Quitar "+esc(g.name)+" de favoritos":"Añadir "+esc(g.name)+" a favoritos")+'" aria-pressed="'+(isFavorite(g.id)?"true":"false")+'">'+(isFavorite(g.id)?"♥ Guardado":"♡ Favorito")+'</button></div><div class="game-frame-wrap"><iframe id="gameFrame" src="'+esc(safeUrl(g.url))+'" title="'+esc(g.name)+'" allow="autoplay; fullscreen; gamepad" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="player-controls"><button class="btn" id="fullScreen">⛶ Pantalla completa</button><button class="btn sec" id="reloadGame">↻ Recargar</button><a class="btn sec" target="_blank" rel="noopener noreferrer" href="'+esc(safeUrl(g.url))+'">Abrir en otra pestaña ↗</a><label class="game-volume-control" for="gameVolume"><span aria-hidden="true">🔊</span><span>Volumen</span><input id="gameVolume" type="range" min="0" max="100" step="5" value="100" aria-describedby="gameVolumeStatus"><output id="gameVolumeValue" for="gameVolume">100%</output></label></div><p class="player-note" id="gameVolumeStatus" role="status" aria-live="polite">El control de volumen está disponible en los juegos que permiten controlar su audio desde NOVA ARCADE.</p><p class="player-note">Algunos sitios bloquean la reproducción integrada. En ese caso, abre el juego en otra pestaña.</p>'+section("Más juegos de "+esc(g.cat),related);
+ return '<div class="player-top"><a class="btn sec" href="#">← Volver</a><span class="tag">'+esc(g.cat)+'</span></div><div class="player-title"><div><h1>'+esc(g.name)+'</h1><p>'+esc(shortDescription(g.desc,150))+'</p></div><button type="button" class="btn sec" data-fav="'+esc(g.id)+'" aria-label="'+(isFavorite(g.id)?"Quitar "+esc(g.name)+" de favoritos":"Añadir "+esc(g.name)+" a favoritos")+'" aria-pressed="'+(isFavorite(g.id)?"true":"false")+'">'+(isFavorite(g.id)?"♥ Guardado":"♡ Favorito")+'</button></div><div class="game-frame-wrap"><iframe id="gameFrame" src="'+esc(safeUrl(g.url))+'" title="'+esc(g.name)+'" allow="autoplay; fullscreen; gamepad" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="player-controls"><button class="btn" id="fullScreen">⛶ Pantalla completa</button><button class="btn sec" id="reloadGame">↻ Recargar</button><a class="btn sec" target="_blank" rel="noopener noreferrer" href="'+esc(safeUrl(g.url))+'">Abrir en otra pestaña ↗</a></div><p class="player-note">Algunos sitios bloquean la reproducción integrada. En ese caso, abre el juego en otra pestaña.</p>'+section("Más juegos de "+esc(g.cat),related);
 }
 function bindPlayer(){
- var frame=$("#gameFrame"),volume=$("#gameVolume"),volumeValue=$("#gameVolumeValue"),volumeStatus=$("#gameVolumeStatus"),mediaObserver=null,volumeSupported=false,currentVolume=volume?Number(volume.value)/100:1,frameLoaded=false;
- function setVolumeStatus(message){if(volumeStatus)volumeStatus.textContent=message;}
- function setVolumeAvailability(supported){
-  volumeSupported=supported;
-  if(volume)volume.disabled=!supported;
-  if(supported){
-   setVolumeStatus("Control de volumen activo para este juego.");
-  }else{
-   setVolumeStatus("Este juego no permite controlar el audio desde NOVA ARCADE porque está aislado por el navegador. Usa el control de sonido del propio juego o el mezclador de Windows.");
-  }
- }
- function applyGameVolume(value){
-  if(!frame||!frameLoaded)return false;
-  try{
-   var doc=frame.contentDocument;
-   if(!doc||!doc.documentElement)return false;
-   var media=doc.querySelectorAll("audio,video");
-   media.forEach(function(element){
-    try{element.volume=value;}catch(error){}
-   });
-   if(mediaObserver)mediaObserver.disconnect();
-   var Observer=frame.contentWindow.MutationObserver;
-   if(Observer){
-    mediaObserver=new Observer(function(records){
-     records.forEach(function(record){
-      record.addedNodes.forEach(function(node){
-       if(node.nodeType!==1)return;
-       try{
-        if(node.matches&&node.matches("audio,video"))node.volume=currentVolume;
-        if(node.querySelectorAll)node.querySelectorAll("audio,video").forEach(function(element){element.volume=currentVolume;});
-       }catch(error){}
-      });
-     });
-    });
-    if(doc.documentElement)mediaObserver.observe(doc.documentElement,{childList:true,subtree:true});
-   }
-   return true;
-  }catch(error){
-   if(mediaObserver)mediaObserver.disconnect();
-   mediaObserver=null;
-   return false;
-  }
- }
- if(volume){
-  volume.disabled=true;
-  setVolumeStatus("Comprobando si este juego permite controlar el volumen…");
-  volume.oninput=function(){
-   currentVolume=Math.max(0,Math.min(1,Number(volume.value)/100));
-   if(volumeValue)volumeValue.textContent=Math.round(currentVolume*100)+"%";
-   if(volumeSupported&&!applyGameVolume(currentVolume))setVolumeAvailability(false);
-  };
- }
- if(frame){
-  frame.addEventListener("load",function(){
-   if(mediaObserver)mediaObserver.disconnect();
-   mediaObserver=null;
-   frameLoaded=true;
-   setVolumeAvailability(applyGameVolume(currentVolume));
-  });
- }
- if($("#fullScreen"))$("#fullScreen").onclick=function(){if(frame&&frame.requestFullscreen)frame.requestFullscreen().catch(function(){});};
- if($("#reloadGame"))$("#reloadGame").onclick=function(){
-  if(!frame)return;
-  frameLoaded=false;
-  if(mediaObserver)mediaObserver.disconnect();
-  mediaObserver=null;
-  if(volume)volume.disabled=true;
-  setVolumeStatus("Recargando el juego y comprobando el control de volumen…");
-  frame.src=frame.src;
+ var frame=$("#gameFrame");
+ if($("#fullScreen"))$("#fullScreen").onclick=function(){
+  if(frame&&frame.requestFullscreen)frame.requestFullscreen().catch(function(){});
  };
- document.querySelectorAll("[data-fav]").forEach(function(b){b.onclick=function(){toggleFavorite(b.dataset.fav);};});
+ if($("#reloadGame"))$("#reloadGame").onclick=function(){
+  if(frame)frame.src=frame.src;
+ };
+ document.querySelectorAll("[data-fav]").forEach(function(button){
+  button.onclick=function(){toggleFavorite(button.dataset.fav);};
+ });
+ bindSettings();
 }
+
 function accountView(){
   if(adminSession&&adminSession.user){
     var accountEmail=esc(adminSession.user.email||"Cuenta autenticada");
@@ -1010,16 +951,54 @@ async function act(a,i){
   }
 }
 /* ---------- Render ---------- */
+function applyNovaTheme(theme){
+ var allowed=["principal","neon","retro","light"];
+ var selected=allowed.indexOf(theme)>=0?theme:"principal";
+ document.body.setAttribute("data-nova-theme",selected);
+ try{localStorage.setItem("nova-arcade-theme",selected);}catch(error){}
+ return selected;
+}
+function bindSettings(){
+ var toggle=$("#settingsToggle"),panel=$("#settingsPanel"),close=$("#settingsClose"),reset=$("#settingsReset");
+ if(!toggle||!panel)return;
+ var selected=document.body.getAttribute("data-nova-theme")||"principal";
+ function sync(){
+  document.querySelectorAll("[data-theme-choice]").forEach(function(button){
+   var active=button.getAttribute("data-theme-choice")===selected;
+   button.classList.toggle("is-active",active);
+   button.setAttribute("aria-pressed",active?"true":"false");
+  });
+ }
+ function setOpen(open){
+  panel.hidden=!open;
+  toggle.setAttribute("aria-expanded",open?"true":"false");
+ }
+ toggle.onclick=function(){setOpen(panel.hidden);};
+ if(close)close.onclick=function(){setOpen(false);toggle.focus();};
+ panel.querySelectorAll("[data-theme-choice]").forEach(function(button){
+  button.onclick=function(){
+   selected=applyNovaTheme(button.getAttribute("data-theme-choice"));
+   sync();
+  };
+ });
+ if(reset)reset.onclick=function(){selected=applyNovaTheme("principal");sync();};
+ document.addEventListener("keydown",function(event){
+  if(event.key==="Escape"&&!panel.hidden){setOpen(false);toggle.focus();}
+ });
+ sync();
+}
+try{applyNovaTheme(localStorage.getItem("nova-arcade-theme")||"principal");}
+catch(error){applyNovaTheme("principal");}
 function render(){
   var isA=location.hash==="#admin",isAccount=location.hash==="#cuenta",isPlay=location.hash.indexOf("#play/")===0;
-  if(isPlay){$("#nav").innerHTML='<a class="btn sec sm" href="#cuenta">Mi cuenta</a> <a class="btn sec sm" href="#">Inicio</a>';$("#app").innerHTML=gamePlayerView();bindPlayer();return;}
+  if(isPlay){$("#nav").innerHTML="<a class=\"btn sec sm\" href=\"#cuenta\">Mi cuenta</a> <a class=\"btn sec sm\" href=\"#\">Inicio</a> <span class=\"settings-wrap\"><button class=\"btn sec sm settings-toggle\" id=\"settingsToggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"settingsPanel\">⚙ Configuración</button><section class=\"settings-panel\" id=\"settingsPanel\" aria-label=\"Configuración visual\" hidden><div class=\"settings-panel-head\"><strong>Aspecto de NOVA ARCADE</strong><button type=\"button\" class=\"settings-close\" id=\"settingsClose\" aria-label=\"Cerrar configuración\">×</button></div><p>Elige el tema que prefieras. Se guardará en este dispositivo.</p><div class=\"theme-options\"><button type=\"button\" class=\"theme-option\" data-theme-choice=\"principal\"><span class=\"theme-preview theme-preview-principal\"></span><span><strong>Principal</strong><small>Emerald · Blue · Orange</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"neon\"><span class=\"theme-preview theme-preview-neon\"></span><span><strong>Neon Galaxy</strong><small>Violeta · Cian · Rosa</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"retro\"><span class=\"theme-preview theme-preview-retro\"></span><span><strong>Retro Arcade</strong><small>Carbón · Naranja · Dorado</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"light\"><span class=\"theme-preview theme-preview-light\"></span><span><strong>Light Mode</strong><small>Claro · Azul · Esmeralda</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button></div><button type=\"button\" class=\"settings-reset\" id=\"settingsReset\">Restablecer tema principal</button></section></span>";$("#app").innerHTML=gamePlayerView();bindPlayer();return;}
   if(isAccount){
     $("#nav").innerHTML='<a class="btn sec sm" href="#">Inicio</a> <a class="btn sec sm" href="#admin">Admin</a>';
     $("#app").innerHTML=accountView();
     bind(false);
     return;
   }
-  $("#nav").innerHTML=isA&&admin?'<button class="btn sec sm" id="ver">Ver web</button> <button class="btn sec sm" id="out">Cerrar sesión</button>':isA?'':'<a class="btn sec sm" style="text-decoration:none" href="#cuenta">Mi cuenta</a> <a class="btn sec sm" style="text-decoration:none" href="#admin">Admin</a>';
+  $("#nav").innerHTML=isA&&admin?'<button class="btn sec sm" id="ver">Ver web</button> <button class="btn sec sm" id="out">Cerrar sesión</button>':isA?'':"<a class=\"btn sec sm\" style=\"text-decoration:none\" href=\"#cuenta\">Mi cuenta</a> <a class=\"btn sec sm\" style=\"text-decoration:none\" href=\"#admin\">Admin</a> <span class=\"settings-wrap\"><button class=\"btn sec sm settings-toggle\" id=\"settingsToggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"settingsPanel\">⚙ Configuración</button><section class=\"settings-panel\" id=\"settingsPanel\" aria-label=\"Configuración visual\" hidden><div class=\"settings-panel-head\"><strong>Aspecto de NOVA ARCADE</strong><button type=\"button\" class=\"settings-close\" id=\"settingsClose\" aria-label=\"Cerrar configuración\">×</button></div><p>Elige el tema que prefieras. Se guardará en este dispositivo.</p><div class=\"theme-options\"><button type=\"button\" class=\"theme-option\" data-theme-choice=\"principal\"><span class=\"theme-preview theme-preview-principal\"></span><span><strong>Principal</strong><small>Emerald · Blue · Orange</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"neon\"><span class=\"theme-preview theme-preview-neon\"></span><span><strong>Neon Galaxy</strong><small>Violeta · Cian · Rosa</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"retro\"><span class=\"theme-preview theme-preview-retro\"></span><span><strong>Retro Arcade</strong><small>Carbón · Naranja · Dorado</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button><button type=\"button\" class=\"theme-option\" data-theme-choice=\"light\"><span class=\"theme-preview theme-preview-light\"></span><span><strong>Light Mode</strong><small>Claro · Azul · Esmeralda</small></span><span class=\"theme-check\" aria-hidden=\"true\">✓</span></button></div><button type=\"button\" class=\"settings-reset\" id=\"settingsReset\">Restablecer tema principal</button></section></span>";
   $("#app").innerHTML=isA?(passwordRecoveryMode?passwordRecoveryView():(!adminChecked?authLoadingView():(admin?adminView():loginView()))):(catalogLoaded?pubView():catalogLoadingView());
   if(!isA || adminChecked || passwordRecoveryMode) bind(isA);
 }
