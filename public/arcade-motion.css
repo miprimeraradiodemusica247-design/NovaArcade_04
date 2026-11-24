@@ -1253,3 +1253,88 @@ body[data-nova-theme="light"]:is(:has(#app > .hero), :has(#app > .player-title))
     filter: none;
   }
 }
+
+
+/* NOVA ARCADE — compact game catalogue and continuous browsing */
+body:has(#app > .hero) .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 158px), 1fr));
+  gap: 12px;
+}
+body:has(#app > .hero) .card {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 13px;
+}
+body:has(#app > .hero) .cover,
+body:has(#app > .hero) .cover img {
+  height: 104px;
+}
+body:has(#app > .hero) .card .b {
+  padding: 10px;
+}
+body:has(#app > .hero) .card .tag {
+  font-size: 10px;
+  padding: 3px 7px;
+}
+body:has(#app > .hero) .card h3 {
+  margin: 7px 0 4px;
+  font-size: 14px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: 2.5em;
+}
+body:has(#app > .hero) .card p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: 2.7em;
+}
+body:has(#app > .hero) .card-actions {
+  gap: 6px;
+  margin-top: 8px;
+}
+body:has(#app > .hero) .card-actions .btn {
+  min-height: 34px;
+  padding: 7px 9px;
+  font-size: 11px;
+}
+body:has(#app > .hero) .favorite-btn {
+  min-width: 34px;
+}
+body:has(#app > .hero) .infinite-load,
+body:has(#app > .hero) .infinite-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 76px;
+  margin: 22px 0 34px;
+  color: var(--mut);
+  text-align: center;
+}
+body:has(#app > .hero) .infinite-load p { margin: 0; font-size: 12px; }
+body:has(#app > .hero) .infinite-end { font-size: 12px; }
+@media (min-width: 1100px) {
+  body:has(#app > .hero) .grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 14px;
+  }
+}
+@media (max-width: 480px) {
+  body:has(#app > .hero) .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+  body:has(#app > .hero) .cover,
+  body:has(#app > .hero) .cover img { height: 94px; }
+  body:has(#app > .hero) .card .b { padding: 8px; }
+}
