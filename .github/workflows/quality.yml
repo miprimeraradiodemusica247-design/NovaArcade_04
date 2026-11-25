@@ -162,3 +162,24 @@ jobs:
             'Health check must report whether the optional notification integration is configured.');
           console.log('Supabase API-key handling and health check: OK');
           NODE
+
+      - name: Validate robots.txt crawl policy
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const lines = fs.readFileSync('public/robots.txt', 'utf8')
+            .split(/\r?\n/)
+            .map((line) => line.trim());
+
+          for (const directive of [
+            'User-agent: *',
+            'Allow: /',
+            'Disallow: /api/',
+            'Sitemap: https://novaarcade04.vercel.app/sitemap.xml'
+          ]) {
+            assert(lines.includes(directive), 'Missing robots.txt directive: ' + directive);
+          }
+
+          console.log('robots.txt crawl policy: OK');
+          NODE
