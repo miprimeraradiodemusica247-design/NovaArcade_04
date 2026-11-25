@@ -201,7 +201,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ env.RELEASE_VERSION }}
         run: |
-          gh release create "$VERSION" NOVA-ARCADE-Android.apk NOVA-ARCADE-Android.apk.sha256 \
-            --title "NOVA ARCADE $VERSION" \
-            --notes "Actualización oficial de NOVA ARCADE para Android. La aplicación carga el contenido web publicado y necesita conexión a Internet." \
-            --latest
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release upload "$VERSION" NOVA-ARCADE-Android.apk NOVA-ARCADE-Android.apk.sha256 --clobber
+            gh release edit "$VERSION" \
+              --title "NOVA ARCADE $VERSION" \
+              --notes "Actualización oficial de NOVA ARCADE para Android. La aplicación carga el contenido web publicado y necesita conexión a Internet." \
+              --latest
+          else
+            gh release create "$VERSION" NOVA-ARCADE-Android.apk NOVA-ARCADE-Android.apk.sha256 \
+              --title "NOVA ARCADE $VERSION" \
+              --notes "Actualización oficial de NOVA ARCADE para Android. La aplicación carga el contenido web publicado y necesita conexión a Internet." \
+              --latest
+          fi
