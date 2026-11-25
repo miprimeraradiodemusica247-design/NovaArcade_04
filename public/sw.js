@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "nova-arcade-shell-v2";
+const CACHE_NAME = "nova-arcade-shell-v3";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE_URLS = [
   OFFLINE_URL,
