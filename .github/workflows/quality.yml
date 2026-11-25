@@ -92,6 +92,21 @@ jobs:
           const html = fs.readFileSync('public/index.html', 'utf8');
           const categorySource = fs.readFileSync('api/category.js', 'utf8');
 
+          const loaderStart = html.indexOf('async function loadPersistentGames()');
+          const loaderEnd = html.indexOf('async function refreshAdminState(session)', loaderStart);
+          if (loaderStart < 0 || loaderEnd <= loaderStart) {
+            throw new Error('Cannot isolate the read-only catalog loader.');
+          }
+          const catalogLoader = html.slice(loaderStart, loaderEnd);
+          for (const mutation of ['.insert(', '.upsert(', '.update(', '.delete(']) {
+            if (catalogLoader.includes(mutation)) {
+              throw new Error('Catalog loading must not mutate production data: found ' + mutation);
+            }
+          }
+          if (catalogLoader.includes('localStorage.getItem("na_games")')) {
+            throw new Error('Legacy localStorage games must never be imported automatically.');
+          }
+
           const categoryMatch = html.match(/var CATS=\[([^\]]+)\]/);
           assert(categoryMatch, 'Cannot read storefront categories.');
           const categories = [...categoryMatch[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]);
