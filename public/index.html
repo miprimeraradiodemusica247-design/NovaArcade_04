@@ -590,23 +590,7 @@ async function loadPersistentGames(){
       rows=rows.concat(result.data);
     }
   }
-  if(admin&&rows.length===0){
-    var legacyRaw=localStorage.getItem("na_games");
-    if(legacyRaw){
-      try{
-        var legacy=JSON.parse(legacyRaw);
-        if(Array.isArray(legacy)){
-          var importable=legacy.filter(function(g){return g&&g.name&&g.url&&!/^https?:\/\/example\.com(?:\/|$)/i.test(g.url);});
-          if(importable.length){
-            var payload=importable.map(function(g,i){return {name:String(g.name).slice(0,60),description:String(g.desc||"").slice(0,10000),category:CATS.indexOf(g.cat)>=0?g.cat:CATS[0],game_url:String(g.url),is_published:!!g.pub,is_featured:!!g.feat,sort_order:i,created_by:adminUser.id};});
-            var imported=await supabaseClient.from("games").insert(payload).select("*");
-            if(imported.error)console.error("No se pudo importar el catálogo local:",imported.error);
-            else rows=imported.data||[];
-          }
-        }
-      }catch(error){console.error("El catálogo local antiguo no tiene un formato válido:",error);}
-    }
-  }
+  // Keep catalog loading read-only; imports require an explicit admin action.
   games=rows.map(gameFromRow);
 }
 async function refreshAdminState(session){
