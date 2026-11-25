@@ -49,6 +49,10 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Generate Android project
         run: npx cap add android
+      - name: Generate NOVA ARCADE launcher icons
+        run: |
+          python3 -m pip install --disable-pip-version-check --quiet cairosvg pillow
+          python3 scripts/generate-android-icons.py
       - name: Synchronize Capacitor project
         run: npx cap sync android
       - name: Build debug APK
@@ -116,6 +120,10 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Generate Android project
         run: npx cap add android
+      - name: Generate NOVA ARCADE launcher icons
+        run: |
+          python3 -m pip install --disable-pip-version-check --quiet cairosvg pillow
+          python3 scripts/generate-android-icons.py
       - name: Set embedded app version
         env:
           RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
