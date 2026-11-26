@@ -183,3 +183,22 @@ jobs:
 
           console.log('robots.txt crawl policy: OK');
           NODE
+
+      - name: Validate public keyboard focus and reduced motion
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const css = fs.readFileSync('public/arcade-motion.css', 'utf8');
+          const focusSelector = ':where(a, button, input, select, textarea, [tabindex]):focus-visible';
+
+          assert(css.includes(focusSelector), 'Missing keyboard-visible focus selector.');
+          assert(css.includes('outline: 3px solid var(--na-focus);'), 'Missing visible keyboard focus outline.');
+          assert(css.includes('outline-offset: 3px;'), 'Keyboard focus outline must be offset.');
+          assert(css.includes('body:has(#app > .hero) ' + focusSelector), 'Missing public-home focus styling.');
+          assert(css.includes('body:has(#app > .player-title) ' + focusSelector), 'Missing public-player focus styling.');
+          assert(css.includes('outline-color: var(--ac, #2388ff);'), 'Missing theme-aware focus color fallback.');
+          assert(css.includes('@media (prefers-reduced-motion: reduce)'), 'Missing reduced-motion support.');
+
+          console.log('Public keyboard focus and reduced-motion styles: OK');
+          NODE
