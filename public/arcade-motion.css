@@ -1629,3 +1629,9 @@ body:has(#app > .player-title) .player-controls .btn {
     transition: none !important;
   }
 }
+
+/* Public keyboard focus indicator: use the active theme accent for stronger contrast. */
+body:has(#app > .hero) :where(a, button, input, select, textarea, [tabindex]):focus-visible,
+body:has(#app > .player-title) :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline-color: var(--ac, #2388ff);
+}
