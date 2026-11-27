@@ -1635,3 +1635,11 @@ body:has(#app > .hero) :where(a, button, input, select, textarea, [tabindex]):fo
 body:has(#app > .player-title) :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline-color: var(--ac, #2388ff);
 }
+
+/* Defer rendering of off-screen catalogue cards on browsers that support it. */
+@supports (content-visibility: auto) {
+  body:has(#app > .hero) .card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 260px;
+  }
+}
