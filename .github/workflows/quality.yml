@@ -209,15 +209,15 @@ jobs:
           const fs = require('node:fs');
           const assert = require('node:assert/strict');
           const css = fs.readFileSync('public/arcade-motion.css', 'utf8');
-          const blocks = [...css.matchAll(/@supports\\s*\\(\\s*content-visibility\\s*:\\s*auto\\s*\\)\\s*\\{([\\s\\S]*?)\\n\\}/g)];
+          const blocks = [...css.matchAll(/@supports\s*\(\s*content-visibility\s*:\s*auto\s*\)\s*\{([\s\S]*?)\n\}/g)];
 
           assert.equal(blocks.length, 1, 'Expected one guarded content-visibility block.');
           const block = blocks[0][1];
-          assert.match(block, /body:has\\(#app > \\.hero\\)\\s+\\.card\\s*\\{/,
+          assert.match(block, /body:has\(#app > \.hero\)\s+\.card\s*\{/,
             'Deferred rendering must target public home cards only.');
-          assert.match(block, /content-visibility:\\s*auto\\s*;/,
+          assert.match(block, /content-visibility:\s*auto\s*;/,
             'Missing deferred rendering declaration.');
-          assert.match(block, /contain-intrinsic-size:\\s*auto\\s+260px\\s*;/,
+          assert.match(block, /contain-intrinsic-size:\s*auto\s+260px\s*;/,
             'Missing intrinsic size to reserve off-screen card space.');
           assert(!/player-title|admin|account|auth/i.test(block),
             'Deferred rendering must not extend to player, account or admin views.');
