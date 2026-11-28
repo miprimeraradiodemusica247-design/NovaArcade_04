@@ -232,3 +232,45 @@ jobs:
 
           console.log('Deferred public catalogue rendering scope: OK');
           NODE
+
+      - name: Validate mobile catalogue layout
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const css = fs.readFileSync('public/arcade-motion.css', 'utf8');
+
+          function extractBlock(source, marker, last = false) {
+            const start = last ? source.lastIndexOf(marker) : source.indexOf(marker);
+            assert(start >= 0, 'Missing responsive CSS block: ' + marker);
+            const open = source.indexOf('{', start);
+            assert(open >= 0, 'Malformed responsive CSS block: ' + marker);
+            let depth = 0;
+            for (let i = open; i < source.length; i++) {
+              if (source[i] === '{') depth++;
+              else if (source[i] === '}') {
+                depth--;
+                if (depth === 0) return source.slice(open + 1, i);
+              }
+            }
+            throw new Error('Unclosed responsive CSS block: ' + marker);
+          }
+
+          const mobileGrid = extractBlock(css, '@media (max-width: 480px)');
+          const mobileSearch = extractBlock(css, '@media (max-width: 700px)', true);
+
+          assert.match(mobileGrid,
+            /body:has\\(#app > \\.hero\\)\\s+\\.grid\\s*\\{[^}]*grid-template-columns:\\s*repeat\\(2,\\s*minmax\\(0,\\s*1fr\\)\\)/,
+            'Mobile catalogue must retain a two-column grid without intrinsic overflow.');
+          assert.match(css,
+            /body:has\\(#app > \\.hero\\)\\s+\\.card\\s*\\{[^}]*min-width:\\s*0\\s*;/,
+            'Catalogue cards must allow grid shrinking on narrow screens.');
+          assert.match(mobileSearch,
+            /body:has\\(#app > \\.hero\\)\\s+\\.main-search\\s*\\{[^}]*display:\\s*grid\\s*;[^}]*grid-template-columns:\\s*minmax\\(0,\\s*1fr\\)\\s+minmax\\(0,\\s*1fr\\)\\s*;/,
+            'Mobile search controls must use two shrinkable columns.');
+          assert.match(mobileSearch,
+            /body:has\\(#app > \\.hero\\)\\s+\\.main-search input,\\s*body:has\\(#app > \\.hero\\)\\s+\\.main-search #clearFilters\\s*\\{[^}]*grid-column:\\s*1\\s*\\/\\s*-1\\s*;/,
+            'Mobile search input and clear action must span the full row.');
+
+          console.log('Mobile catalogue grid and search layout: OK');
+          NODE
