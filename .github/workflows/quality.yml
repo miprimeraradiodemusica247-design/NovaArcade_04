@@ -256,21 +256,23 @@ jobs:
             throw new Error('Unclosed responsive CSS block: ' + marker);
           }
 
-          const mobileGrid = extractBlock(css, '@media (max-width: 480px)');
-          const mobileSearch = extractBlock(css, '@media (max-width: 700px)', true);
+          const compact = (value) => value.replace(/\s+/g, ' ').trim();
+          const mobileGrid = compact(extractBlock(css, '@media (max-width: 480px)'));
+          const mobileSearch = compact(extractBlock(css, '@media (max-width: 700px)', true));
+          const allCss = compact(css);
 
-          assert.match(mobileGrid,
-            /body:has\\(#app > \\.hero\\)\\s+\\.grid\\s*\\{[^}]*grid-template-columns:\\s*repeat\\(2,\\s*minmax\\(0,\\s*1fr\\)\\)/,
-            'Mobile catalogue must retain a two-column grid without intrinsic overflow.');
-          assert.match(css,
-            /body:has\\(#app > \\.hero\\)\\s+\\.card\\s*\\{[^}]*min-width:\\s*0\\s*;/,
-            'Catalogue cards must allow grid shrinking on narrow screens.');
-          assert.match(mobileSearch,
-            /body:has\\(#app > \\.hero\\)\\s+\\.main-search\\s*\\{[^}]*display:\\s*grid\\s*;[^}]*grid-template-columns:\\s*minmax\\(0,\\s*1fr\\)\\s+minmax\\(0,\\s*1fr\\)\\s*;/,
-            'Mobile search controls must use two shrinkable columns.');
-          assert.match(mobileSearch,
-            /body:has\\(#app > \\.hero\\)\\s+\\.main-search input,\\s*body:has\\(#app > \\.hero\\)\\s+\\.main-search #clearFilters\\s*\\{[^}]*grid-column:\\s*1\\s*\\/\\s*-1\\s*;/,
-            'Mobile search input and clear action must span the full row.');
+          assert(mobileGrid.includes(
+            'body:has(#app > .hero) .grid { grid-template-columns: repeat(2, minmax(0, 1fr));'
+          ), 'Mobile catalogue must retain a two-column grid without intrinsic overflow.');
+          assert(allCss.includes(
+            'body:has(#app > .hero) .card { min-width: 0;'
+          ), 'Catalogue cards must allow grid shrinking on narrow screens.');
+          assert(mobileSearch.includes(
+            'body:has(#app > .hero) .main-search { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);'
+          ), 'Mobile search controls must use two shrinkable columns.');
+          assert(mobileSearch.includes(
+            'body:has(#app > .hero) .main-search input, body:has(#app > .hero) .main-search #clearFilters { grid-column: 1 / -1;'
+          ), 'Mobile search input and clear action must span the full row.');
 
           console.log('Mobile catalogue grid and search layout: OK');
           NODE
