@@ -198,7 +198,15 @@ jobs:
           assert(css.includes('body:has(#app > .hero) ' + focusSelector), 'Missing public-home focus styling.');
           assert(css.includes('body:has(#app > .player-title) ' + focusSelector), 'Missing public-player focus styling.');
           assert(css.includes('outline-color: var(--ac, #2388ff);'), 'Missing theme-aware focus color fallback.');
-          assert(css.includes('@media (prefers-reduced-motion: reduce)'), 'Missing reduced-motion support.');
+          const reducedMotionBlocks = [...css.matchAll(/@media\\s*\\(prefers-reduced-motion:\\s*reduce\\)\\s*\\{([\\s\\S]*?)\\n\\}/g)];
+          assert(reducedMotionBlocks.length > 0, 'Missing reduced-motion support.');
+          const reducedMotionCss = reducedMotionBlocks.map((match) => match[1]).join('\\n');
+          assert.match(reducedMotionCss, /animation:\\s*none(?:\\s*!important)?;/,
+            'Reduced-motion mode must disable non-essential animations.');
+          assert.match(reducedMotionCss, /transform:\\s*none(?:\\s*!important)?;/,
+            'Reduced-motion mode must disable motion transforms.');
+          assert.match(reducedMotionCss, /scroll-behavior:\\s*auto;/,
+            'Reduced-motion mode must disable smooth scrolling.');
 
           console.log('Public keyboard focus and reduced-motion styles: OK');
           NODE
